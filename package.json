@@ -1,0 +1,9 @@
+{
+  "name": "aura-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AURA — hosted training & nutrition app. Static front-end + Vercel serverless Gemini proxy + Supabase auth and storage.",
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}
