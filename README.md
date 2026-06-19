@@ -1,8 +1,27 @@
-# AURA — self-hosted (Vercel + Supabase)
+# Aesthete — self-hosted (Vercel + Supabase)
 
-Hosted AURA with **accounts**, **saved progress**, and an **iOS Liquid-Glass** UI.
-The Gemini key never touches the browser — it lives in a Vercel env var and is used
-only by a serverless function (`/api/gemini`) that also verifies the caller is signed in.
+Hosted **Aesthete** (formerly Aura) with **invite-only accounts**, **saved progress**,
+**workout tracking**, per-exercise **how-to guides**, and an **iOS add-to-Home-Screen**
+Liquid-Glass UI. The Gemini key never touches the browser — it lives in a Vercel env var
+and is used only by a serverless function (`/api/gemini`) that also verifies the caller is
+signed in.
+
+## Invite codes (controlling who can join)
+
+Sign-up is **invite-only**. New accounts require a valid, unused code, validated and
+consumed server-side by the `signup-with-invite` Supabase edge function (the
+`invite_codes` table is locked down with RLS and only reachable by the service role).
+
+Generate a fresh batch of codes anytime from the Supabase SQL editor:
+
+```sql
+insert into public.invite_codes (code, note)
+select 'AES-' || string_agg(substr('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', floor(random()*32)::int + 1, 1), ''), 'batch 2'
+from generate_series(1,5), generate_series(1,20) g group by g;
+
+-- see codes + who has used them
+select code, note, used_by, used_at from public.invite_codes order by created_at;
+```
 
 ```
 aura-app/

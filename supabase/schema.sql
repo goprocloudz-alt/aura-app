@@ -9,8 +9,22 @@ create table if not exists public.user_plans (
   plan       jsonb,
   progress   jsonb not null default '{}'::jsonb,
   profile    jsonb not null default '{}'::jsonb,
+  settings   jsonb not null default '{}'::jsonb,   -- display name, prefs
+  history    jsonb not null default '[]'::jsonb,   -- logged workout sessions
   updated_at timestamptz not null default now()
 );
+
+-- Invite-only signup. Codes are validated/consumed ONLY by the service role
+-- (via the `signup-with-invite` edge function). RLS is on with no policies, so
+-- anon/authenticated clients can never read or write this table directly.
+create table if not exists public.invite_codes (
+  code       text primary key,
+  note       text,
+  created_at timestamptz not null default now(),
+  used_by    uuid references auth.users(id) on delete set null,
+  used_at    timestamptz
+);
+alter table public.invite_codes enable row level security;  -- no policies on purpose
 
 alter table public.user_plans enable row level security;
 

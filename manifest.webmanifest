@@ -1,0 +1,17 @@
+{
+  "name": "Aesthete",
+  "short_name": "Aesthete",
+  "description": "Training & nutrition, sculpted around you — lean, defined, glowing.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F3F2F7",
+  "theme_color": "#F3F2F7",
+  "orientation": "portrait",
+  "categories": ["health", "fitness", "lifestyle"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
