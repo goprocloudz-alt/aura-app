@@ -568,7 +568,9 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
 .mealDay{flex:0 0 auto;font-family:var(--body);font-weight:600;font-size:13px;color:var(--ink-soft);background:var(--glass);-webkit-backdrop-filter:var(--glass-blur-sm);backdrop-filter:var(--glass-blur-sm);border:1px solid var(--glass-stroke);border-radius:30px;padding:8px 15px;cursor:pointer;box-shadow:var(--edge);white-space:nowrap}
 .mealDay.on{background:linear-gradient(180deg,#7e5cff,var(--violet));color:#fff;border-color:transparent;box-shadow:0 6px 14px -8px rgba(107,73,240,.6)}
 .mealList{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
-.mealCard{background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur-sm);backdrop-filter:var(--glass-blur-sm);border:1px solid var(--glass-stroke);box-shadow:var(--float),var(--edge);border-radius:var(--r);overflow:hidden}
+.mealCard{background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur-sm);backdrop-filter:var(--glass-blur-sm);border:1px solid var(--glass-stroke);box-shadow:var(--float),var(--edge);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:transform .15s ease, box-shadow .15s ease}
+.mealCard:hover{transform:translateY(-2px)}
+.mealCard:active{transform:translateY(0)}
 .mealImg{position:relative;height:152px;display:grid;place-items:center;overflow:hidden}
 .mealEmoji{font-size:54px;filter:drop-shadow(0 8px 14px rgba(60,40,120,.25))}
 .mealImg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s ease}
@@ -577,6 +579,25 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
 .mealSlot{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--violet);margin-bottom:5px}
 .mealName{font-family:var(--disp);font-weight:700;font-size:16px;margin-bottom:4px}
 .mealItems{font-size:13px;color:var(--ink-soft);line-height:1.45}
+.mealMore{margin-top:9px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--violet)}
+/* meal detail modal */
+.mealModal{padding:0;overflow:hidden auto;max-height:88vh;max-width:430px}
+.mealModalImg{position:relative;height:200px;display:grid;place-items:center;overflow:hidden}
+.mealModalImg .mealEmoji{font-size:64px}
+.mealModalImg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s ease}
+.mealModalImg img.on{opacity:1}
+.mealModalBody{padding:18px 22px 22px}
+.mealModalSlot{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--violet)}
+.mealModal h3{margin:8px 0 0;font-family:var(--disp);font-weight:700;font-size:21px}
+.mealModal #mealModalDesc{margin:8px 0 0;font-size:13.5px;color:var(--ink-soft);line-height:1.55}
+.mealMacros{display:flex;gap:9px;margin:16px 0 4px}
+.mealMacro{flex:1;text-align:center;background:rgba(255,255,255,.6);border:1px solid var(--glass-stroke);border-radius:13px;padding:11px 6px}
+.mealMacro .v{font-family:var(--disp);font-weight:800;font-size:18px}
+.mealMacro .v small{font-size:11px;font-weight:600;color:var(--ink-soft)}
+.mealMacro .k{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-top:3px}
+.mealModal .sectlbl{margin:18px 0 6px}
+.mealField{font-size:13.5px;color:var(--ink-soft);line-height:1.55}
+.mealModal .acts{margin-top:20px}
 
 /* ---- progress polish ---- */
 .statCard .statIc{width:30px;height:30px;border-radius:10px;margin:0 auto 9px;display:grid;place-items:center;background:linear-gradient(135deg,var(--a2),var(--a4));color:#fff;box-shadow:0 6px 14px -8px rgba(107,73,240,.5)}
@@ -765,6 +786,24 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
     <div class="loaderTitle">Sculpting your plan</div>
     <div class="loaderMsg" id="loaderMsg">Reading your focus…</div>
     <div class="loaderDots"><i></i><i></i><i></i></div>
+  </div>
+</div>
+
+<!-- meal detail modal -->
+<div class="scrim" id="mealScrim">
+  <div class="modal mealModal">
+    <div class="mealModalImg" id="mealModalImg"><span class="mealEmoji"></span></div>
+    <div class="mealModalBody">
+      <div class="mealModalSlot" id="mealModalSlot"></div>
+      <h3 id="mealModalName"></h3>
+      <p id="mealModalDesc"></p>
+      <div class="mealMacros" id="mealModalMacros"></div>
+      <div class="sectlbl">What's in it</div>
+      <div class="mealField" id="mealModalItems"></div>
+      <div class="sectlbl">Make it</div>
+      <div class="mealField" id="mealModalMake"></div>
+      <div class="acts"><button class="btn soft" id="mealModalClose" style="flex:1">Close</button></div>
+    </div>
   </div>
 </div>
 
@@ -1722,40 +1761,40 @@ const MEAL_SLOTS=[
 ];
 const MEAL_LIB={
   breakfast:[
-    {n:'Greek yogurt berry parfait',e:'🍓',items:'Greek yogurt · berries · granola · honey'},
-    {n:'Veggie omelette & avocado toast',e:'🍳',items:'Eggs · spinach · avocado · wholegrain toast'},
-    {n:'Banana peanut-butter oats',e:'🥣',items:'Oats · banana · peanut butter · cinnamon'},
-    {n:'Smoked salmon bagel',e:'🥯',items:'Wholegrain bagel · smoked salmon · cream cheese'},
-    {n:'Spinach & feta scramble',e:'🍳',items:'Eggs · spinach · feta · wholegrain toast'},
-    {n:'Blueberry overnight oats',e:'🫐',items:'Oats · chia · blueberries · yogurt'},
-    {n:'Berry smoothie bowl',e:'🥤',items:'Berries · banana · granola · seeds'}
+    {n:'Greek yogurt berry parfait',e:'🍓',items:'Greek yogurt · mixed berries · granola · honey',d:'High in protein and quick to make — the yogurt keeps you full while the berries add fibre and antioxidants.',make:'Layer Greek yogurt with berries and a sprinkle of granola, then drizzle a little honey.'},
+    {n:'Veggie omelette & avocado toast',e:'🍳',items:'Eggs · spinach · avocado · wholegrain toast',d:'Protein, healthy fats and veg in one savoury, satisfying start to the day.',make:'Whisk 2–3 eggs with chopped veg, cook gently, and serve with smashed avocado on wholegrain toast.'},
+    {n:'Banana peanut-butter oats',e:'🥣',items:'Oats · banana · peanut butter · cinnamon',d:'Slow-release carbs and a little protein to fuel a morning workout.',make:'Simmer oats with milk, stir in peanut butter, and top with sliced banana and cinnamon.'},
+    {n:'Smoked salmon bagel',e:'🥯',items:'Wholegrain bagel · smoked salmon · light cream cheese · lemon',d:'Omega-3s and protein with satisfying carbs — feels like a treat but stays balanced.',make:'Toast a wholegrain bagel, spread light cream cheese, and layer smoked salmon with a squeeze of lemon.'},
+    {n:'Spinach & feta scramble',e:'🍳',items:'Eggs · spinach · feta · wholegrain toast',d:'Lower-carb and protein-forward, packed with greens to start the day light.',make:'Soft-scramble eggs with wilted spinach and crumbled feta; serve with a slice of toast.'},
+    {n:'Blueberry overnight oats',e:'🫐',items:'Oats · chia · blueberries · yogurt',d:'Make-ahead, fibre-rich and gentle on digestion — perfect for busy mornings.',make:'Mix oats, chia, milk and yogurt the night before; top with blueberries in the morning.'},
+    {n:'Berry smoothie bowl',e:'🥤',items:'Berries · banana · granola · seeds',d:'Refreshing, antioxidant-rich and easy to digest before or after training.',make:'Blend frozen berries with banana and a splash of milk; pour into a bowl and top with granola and seeds.'}
   ],
   lunch:[
-    {n:'Grilled chicken quinoa bowl',e:'🥗',items:'Chicken · quinoa · roasted veg'},
-    {n:'Tuna poke bowl',e:'🍣',items:'Tuna · rice · avocado · edamame'},
-    {n:'Turkey & hummus wrap',e:'🌯',items:'Turkey · hummus · salad · wholegrain wrap'},
-    {n:'Chickpea & feta salad',e:'🥗',items:'Chickpeas · feta · cucumber · tomato'},
-    {n:'Teriyaki salmon rice bowl',e:'🍱',items:'Salmon · rice · edamame'},
-    {n:'Steak & sweet-potato salad',e:'🥩',items:'Lean steak · sweet potato · greens'},
-    {n:'Shrimp & avocado salad',e:'🍤',items:'Shrimp · avocado · leaves · citrus'}
+    {n:'Grilled chicken quinoa bowl',e:'🥗',items:'Grilled chicken · quinoa · roasted veg · olive oil',d:'Lean protein plus complete-protein quinoa — balanced, filling and meal-prep friendly.',make:'Top quinoa with sliced grilled chicken and roasted veg; finish with olive oil and lemon.'},
+    {n:'Tuna poke bowl',e:'🍣',items:'Tuna · rice · avocado · edamame · soy',d:'Lean omega-3 protein over rice, with healthy fats from avocado.',make:'Combine cubed tuna, rice, avocado and edamame; dress with soy and a little sesame.'},
+    {n:'Turkey & hummus wrap',e:'🌯',items:'Turkey · hummus · salad · wholegrain wrap',d:'Portable and high-protein, with fibre from the wholegrain wrap.',make:'Spread hummus on a wholegrain wrap, add turkey and salad, and roll tightly.'},
+    {n:'Chickpea & feta salad',e:'🥗',items:'Chickpeas · feta · cucumber · tomato · olive oil',d:'Plant protein and fibre that keep you full without feeling heavy.',make:'Toss chickpeas with cucumber, tomato and feta; dress with olive oil and lemon.'},
+    {n:'Teriyaki salmon rice bowl',e:'🍱',items:'Salmon · rice · edamame · teriyaki',d:'Omega-3s and steady carbs — great around training days.',make:'Serve baked teriyaki salmon over rice with steamed edamame.'},
+    {n:'Steak & sweet-potato salad',e:'🥩',items:'Lean steak · sweet potato · greens · balsamic',d:'Iron-rich lean protein with slow-burning carbs from sweet potato.',make:'Slice seared lean steak over greens with roasted sweet potato; drizzle balsamic.'},
+    {n:'Shrimp & avocado salad',e:'🍤',items:'Shrimp · avocado · leaves · lime',d:'Light, very high in protein and rich in healthy fats.',make:'Toss cooked shrimp with avocado and leaves; finish with lime and olive oil.'}
   ],
   dinner:[
-    {n:'Baked salmon & asparagus',e:'🐟',items:'Salmon · asparagus · baby potatoes'},
-    {n:'Beef & veg stir-fry',e:'🥢',items:'Lean beef · peppers · rice'},
-    {n:'Grilled chicken & couscous',e:'🍗',items:'Chicken · couscous · green salad'},
-    {n:'Turkey meatballs & zoodles',e:'🍝',items:'Turkey meatballs · zucchini noodles · tomato'},
-    {n:'Cod with roasted veg',e:'🐠',items:'Cod · roasted vegetables'},
-    {n:'Tofu vegetable curry',e:'🍛',items:'Tofu · vegetables · rice'},
-    {n:'Lean burger bowl',e:'🍔',items:'Lean beef · bun · sweet-potato fries'}
+    {n:'Baked salmon & asparagus',e:'🐟',items:'Salmon · asparagus · baby potatoes',d:'Omega-3 protein with veg and a modest portion of carbs to recover.',make:'Roast salmon with asparagus and baby potatoes at 200°C for about 15–18 minutes.'},
+    {n:'Beef & veg stir-fry',e:'🥢',items:'Lean beef · peppers · broccoli · rice',d:'Iron and protein with plenty of colourful veg.',make:'Stir-fry lean beef strips with peppers and broccoli; serve over rice.'},
+    {n:'Grilled chicken & couscous',e:'🍗',items:'Chicken · couscous · green salad',d:'Lean and light, with fluffy carbs and greens.',make:'Grill the chicken and serve with couscous and a simple green salad.'},
+    {n:'Turkey meatballs & zoodles',e:'🍝',items:'Turkey meatballs · zucchini noodles · tomato',d:'High-protein and lower-carb — comforting without the heaviness.',make:'Simmer turkey meatballs in tomato sauce; serve over spiralized zucchini.'},
+    {n:'Cod with roasted veg',e:'🐠',items:'Cod · roasted vegetables · herbs',d:'Very lean white-fish protein with fibre-rich veg.',make:'Bake cod alongside a tray of roasted vegetables and herbs.'},
+    {n:'Tofu vegetable curry',e:'🍛',items:'Tofu · vegetables · light coconut · rice',d:'Plant-based protein and warming spices — fibre-rich and satisfying.',make:'Simmer tofu and veg in a light coconut curry; serve with rice.'},
+    {n:'Lean burger bowl',e:'🍔',items:'Lean beef patty · salad · sweet-potato fries',d:'A fun, balanced “fakeaway” with lean protein and smarter carbs.',make:'Serve a lean beef patty over salad with a side of baked sweet-potato fries.'}
   ],
   snack:[
-    {n:'Cottage cheese & berries',e:'🫐',items:'Cottage cheese · mixed berries'},
-    {n:'Protein shake & almonds',e:'🥤',items:'Protein shake · almonds'},
-    {n:'Apple & peanut butter',e:'🍎',items:'Apple · peanut butter'},
-    {n:'Greek yogurt & honey',e:'🍯',items:'Greek yogurt · honey · walnuts'},
-    {n:'Hummus & veggie sticks',e:'🥕',items:'Hummus · carrot · cucumber'},
-    {n:'Edamame',e:'🫛',items:'Edamame · sea salt'},
-    {n:'Protein bar & fruit',e:'🍌',items:'Protein bar · banana · berries'}
+    {n:'Cottage cheese & berries',e:'🫐',items:'Cottage cheese · mixed berries · honey',d:'Slow-digesting casein protein — ideal between meals or before bed.',make:'Top cottage cheese with berries and a little honey.'},
+    {n:'Protein shake & almonds',e:'🥤',items:'Protein shake · almonds',d:'Fast protein plus healthy fats to bridge a gap.',make:'Shake protein with water or milk and pair with a small handful of almonds.'},
+    {n:'Apple & peanut butter',e:'🍎',items:'Apple · peanut butter',d:'Fibre and healthy fats for steady, lasting energy.',make:'Slice an apple and dip in a tablespoon of peanut butter.'},
+    {n:'Greek yogurt & honey',e:'🍯',items:'Greek yogurt · honey · walnuts',d:'Protein-rich and quick, with a touch of natural sweetness.',make:'Stir honey into Greek yogurt and top with chopped walnuts.'},
+    {n:'Hummus & veggie sticks',e:'🥕',items:'Hummus · carrot · cucumber',d:'Crunchy, fibre-rich and lightly satisfying.',make:'Dip carrot and cucumber sticks into a couple of spoonfuls of hummus.'},
+    {n:'Edamame',e:'🫛',items:'Edamame · sea salt',d:'Plant protein and fibre with barely any prep.',make:'Steam edamame and sprinkle with a little sea salt.'},
+    {n:'Protein bar & fruit',e:'🍌',items:'Protein bar · banana or berries',d:'Convenient on-the-go protein with fruit for quick energy.',make:'Pair a protein bar with a banana or a handful of berries.'}
   ]
 };
 function calMid(){ const nums=String((S.plan&&S.plan.nutrition&&S.plan.nutrition.calories)||'').match(/\d+/g); if(!nums) return 0; const a=+nums[0], b=nums[1]?+nums[1]:a; return Math.round((a+b)/2); }
@@ -1769,23 +1808,57 @@ function renderMealDays(){
     host.appendChild(pill);
   });
 }
+function mealKcal(slot,mid){ return mid?Math.round(mid*slot.frac/10)*10:0; }
+function macroPercents(){
+  const n=S.plan&&S.plan.nutrition; if(!n) return [0.3,0.45,0.25];
+  const fat=n.fat||Math.round(getWeightKg()*0.8);
+  const k=[(n.protein||0)*4,(n.carbs||0)*4,fat*9]; const t=k.reduce((a,b)=>a+b,0)||1;
+  return k.map(x=>x/t);
+}
+function mealMacros(kcal){ const p=macroPercents(); return { protein:Math.round(kcal*p[0]/4), carbs:Math.round(kcal*p[1]/4), fat:Math.round(kcal*p[2]/9) }; }
+function setMealImg(host,slotKey,idx,emoji){
+  const old=host.querySelector('img'); if(old) old.remove();
+  host.querySelector('.mealEmoji').textContent=emoji;
+  const img=document.createElement('img'); img.loading='lazy'; img.decoding='async'; img.alt='';
+  img.onload=()=>img.classList.add('on'); img.onerror=()=>img.remove();
+  img.src='meals/'+slotKey+'-'+idx+'.jpg';
+  host.appendChild(img);
+}
 function renderMeals(){
   const host=$('mealList'); if(!host) return; host.innerHTML='';
   const di=fuelDayIdx(), mid=calMid(); let dayTotal=0;
   MEAL_SLOTS.forEach((slot,si)=>{
-    const lib=MEAL_LIB[slot.k], m=lib[(di+si)%lib.length];
-    const kcal=mid?Math.round(mid*slot.frac/10)*10:0; dayTotal+=kcal;
+    const lib=MEAL_LIB[slot.k], idx=(di+si)%lib.length, m=lib[idx];
+    const kcal=mealKcal(slot,mid); dayTotal+=kcal;
     const grad=MEAL_GRADS[(di+si)%MEAL_GRADS.length];
-    const card=el('<div class="mealCard"><div class="mealImg" style="background:linear-gradient(140deg,'+grad[0]+','+grad[1]+')"><span class="mealEmoji">'+m.e+'</span></div>'+
-      '<div class="mealBody"><div class="mealSlot">'+esc(slot.label)+(kcal?' · ~'+kcal+' kcal':'')+'</div><div class="mealName">'+esc(m.n)+'</div><div class="mealItems">'+esc(m.items)+'</div></div></div>');
-    const img=document.createElement('img'); img.loading='lazy'; img.alt=m.n; img.decoding='async';
-    img.onload=()=>img.classList.add('on'); img.onerror=()=>img.remove();
-    img.src='meals/'+slot.k+'-'+((di+si)%lib.length)+'.jpg';
-    card.querySelector('.mealImg').appendChild(img);
+    const card=el('<div class="mealCard" role="button" tabindex="0"><div class="mealImg" style="background:linear-gradient(140deg,'+grad[0]+','+grad[1]+')"><span class="mealEmoji">'+m.e+'</span></div>'+
+      '<div class="mealBody"><div class="mealSlot">'+esc(slot.label)+(kcal?' · ~'+kcal+' kcal':'')+'</div><div class="mealName">'+esc(m.n)+'</div><div class="mealItems">'+esc(m.items)+'</div><div class="mealMore">View recipe &amp; macros ›</div></div></div>');
+    setMealImg(card.querySelector('.mealImg'),slot.k,idx,m.e);
+    const open=()=>openMeal(slot.k,idx,kcal);
+    card.onclick=open;
+    card.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(); } });
     host.appendChild(card);
   });
   const tot=$('mealTotal'); if(tot) tot.textContent=dayTotal?('≈ '+dayTotal+' kcal'):'';
 }
+function openMeal(slotKey,idx,kcal){
+  const m=MEAL_LIB[slotKey][idx], slot=MEAL_SLOTS.find(s=>s.k===slotKey);
+  const grad=MEAL_GRADS[(MEAL_SLOTS.indexOf(slot)+idx)%MEAL_GRADS.length];
+  const imgHost=$('mealModalImg'); imgHost.style.background='linear-gradient(140deg,'+grad[0]+','+grad[1]+')';
+  setMealImg(imgHost,slotKey,idx,m.e);
+  $('mealModalSlot').textContent=slot.label+(kcal?' · ~'+kcal+' kcal':'');
+  $('mealModalName').textContent=m.n;
+  $('mealModalDesc').textContent=m.d||'';
+  const mm=mealMacros(kcal);
+  $('mealModalMacros').innerHTML=
+    '<div class="mealMacro"><div class="v">'+mm.protein+'<small>g</small></div><div class="k">Protein</div></div>'+
+    '<div class="mealMacro"><div class="v">'+mm.carbs+'<small>g</small></div><div class="k">Carbs</div></div>'+
+    '<div class="mealMacro"><div class="v">'+mm.fat+'<small>g</small></div><div class="k">Fat</div></div>';
+  $('mealModalItems').textContent=m.items;
+  $('mealModalMake').textContent=m.make||'';
+  $('mealScrim').classList.add('on');
+}
+function closeMeal(){ $('mealScrim').classList.remove('on'); }
 
 /* ---------- tabs / screens ---------- */
 function switchTab(name){
@@ -1800,7 +1873,7 @@ function showPlan(){ $('screenBuild').style.display='none'; $('screenPlan').styl
 function showBuild(){ $('screenPlan').style.display='none'; $('tabbar').style.display='none'; $('screenBuild').style.display='block'; topbar(true); updateBackToPlan(); window.scrollTo({top:0,behavior:'smooth'}); }
 
 /* ---------- coach ---------- */
-function coachIntro(){ return S.planSource==='ai' ? "Hi — I shaped this plan around you. Ask me to swap anything, shorten a day, or tell you what to eat. ✦" : "Here's your plan. Connect a free key and I can personalize it and answer anything — swaps, timing, nutrition."; }
+function coachIntro(){ return S.planSource==='ai' ? "Hi — I shaped this plan around you. Ask me to swap anything, shorten a day, or tell you what to eat. ✦" : "Hi — I'm your coach. Ask me to swap an exercise, make a day easier, or what to eat around your training. ✦"; }
 function renderCoachSug(){
   const s=$('coachSug'); s.innerHTML='';
   ['Make it easier on my knees','Add more glute work','What should I eat after training?','Make day 1 shorter','Swap an exercise I dislike'].forEach(q=>{ const p=el('<div class="pill">'+esc(q)+'</div>'); p.onclick=()=>{ $('askInput').value=q; ask(); }; s.appendChild(p); });
@@ -2217,6 +2290,9 @@ function init(){
   $('resetScrim').addEventListener('click',e=>{ if(e.target===$('resetScrim')) closeReset(); });
   $('resetConfirm').onclick=doReset;
   $('setLogout').onclick=logout;
+  // meal detail modal
+  $('mealModalClose').onclick=closeMeal;
+  $('mealScrim').addEventListener('click',e=>{ if(e.target===$('mealScrim')) closeMeal(); });
   // account button (build screen) opens the same settings hub
   $('connectBtn').onclick=openSettings;
   $('authPrimary').onclick=authSubmit;
