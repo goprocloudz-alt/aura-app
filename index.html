@@ -530,6 +530,44 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
 .emptyState{text-align:center;padding:30px 18px;color:var(--ink-soft);font-size:13.5px}
 .emptyState .orb{width:72px;height:72px;margin:0 auto 14px}
 
+/* ---- fuel page (redesigned) ---- */
+.fuelHero{padding:20px}
+.fuelHeroTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.fuelKcal{font-family:var(--disp);font-weight:800;font-size:clamp(30px,8.5vw,38px);letter-spacing:-.02em;line-height:1;white-space:nowrap;background:linear-gradient(100deg,var(--a2),var(--a4) 55%,var(--a5));-webkit-background-clip:text;background-clip:text;color:transparent}
+.fuelKcalLbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-top:7px}
+.fuelDirPill{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:12.5px;padding:7px 13px;border-radius:30px;white-space:nowrap}
+.fuelDirPill .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.fuelDirPill.cut{background:rgba(122,107,240,.12);color:#5a45c8}.fuelDirPill.cut .dot{background:linear-gradient(var(--a5),var(--a4))}
+.fuelDirPill.gain{background:rgba(54,201,142,.15);color:#1f8f63}.fuelDirPill.gain .dot{background:#36c98e}
+.fuelDirPill.maint{background:var(--violet-wash);color:var(--violet)}.fuelDirPill.maint .dot{background:linear-gradient(var(--a2),var(--a4))}
+.macroBar{display:flex;height:15px;border-radius:8px;overflow:hidden;margin:22px 0 13px;background:var(--surface-2);box-shadow:inset 0 1px 2px rgba(80,60,140,.1)}
+.macroBar i{display:block;height:100%;transition:width .5s ease}
+.macroBar i+i{box-shadow:inset 1.5px 0 0 rgba(255,255,255,.7)}
+.macroLegend{display:flex;justify-content:space-between;gap:8px}
+.legItem{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-soft);min-width:0}
+.legDot{width:10px;height:10px;border-radius:3px;flex:0 0 auto}
+.legName{font-weight:500}
+.legPct{font-family:var(--mono);font-weight:700;color:var(--ink)}
+.macros{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:14px 0 6px}
+.macroCard{position:relative;background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur-sm);backdrop-filter:var(--glass-blur-sm);border:1px solid var(--glass-stroke);box-shadow:var(--edge);border-radius:var(--r-sm);padding:17px 12px 14px;text-align:center;overflow:hidden}
+.macroAccent{position:absolute;top:0;left:0;right:0;height:4px}
+.macroG{font-family:var(--disp);font-weight:800;font-size:23px;line-height:1}
+.macroG small{font-size:12px;font-weight:600;color:var(--ink-soft);margin-left:1px}
+.macroK{font-weight:600;font-size:13px;margin-top:6px}
+.macroP{font-family:var(--mono);font-size:9px;letter-spacing:.04em;color:var(--ink-faint);margin-top:4px}
+.fuelTips{display:flex;flex-direction:column;gap:9px;margin-bottom:16px}
+.fuelTip{position:relative;padding:13px 15px 13px 40px;border-radius:var(--r-sm);background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur-sm);backdrop-filter:var(--glass-blur-sm);border:1px solid var(--glass-stroke);box-shadow:var(--edge);font-size:13.5px;color:var(--ink-soft);line-height:1.55}
+.fuelTip b{color:var(--ink)}
+.fuelTip::before{content:"";position:absolute;left:15px;top:18px;width:9px;height:9px;border-radius:50%;background:linear-gradient(var(--a2),var(--a4))}
+
+/* ---- progress polish ---- */
+.statCard .statIc{width:30px;height:30px;border-radius:10px;margin:0 auto 9px;display:grid;place-items:center;background:linear-gradient(135deg,var(--a2),var(--a4));color:#fff;box-shadow:0 6px 14px -8px rgba(107,73,240,.5)}
+.statCard .statIc svg{width:17px;height:17px}
+.statCard .v{font-size:22px}
+.barChart{height:124px}
+.barCol .bval{font-family:var(--mono);font-size:9px;font-weight:700;color:var(--ink-soft)}
+.barCol .bar{background:linear-gradient(180deg,var(--a2),var(--a4) 60%,var(--a5))}
+
 </style>
 </head>
 <body>
@@ -633,18 +671,21 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
     </div>
 
     <div id="tabFuel">
-      <div style="padding:18px 0">
-        <div class="calhero">
-          <div class="big" id="calBig">—</div>
-          <div class="lbl">kcal a day</div>
-          <div class="dir" id="calDir"></div>
+      <div style="padding:14px 0 0">
+        <div class="card fuelHero">
+          <div class="fuelHeroTop">
+            <div>
+              <div class="fuelKcal" id="calBig">—</div>
+              <div class="fuelKcalLbl">kcal / day target</div>
+            </div>
+            <div id="calDir"></div>
+          </div>
+          <div class="macroBar" id="macroBar"></div>
+          <div class="macroLegend" id="macroLegend"></div>
         </div>
-        <div class="macros">
-          <div class="macro"><div class="v" id="mProtein">—</div><div class="k">protein</div></div>
-          <div class="macro"><div class="v" id="mCarbs">—</div><div class="k">carbs</div></div>
-          <div class="macro"><div class="v" id="mFat">—</div><div class="k">fat</div></div>
-        </div>
-        <ul class="fuelNotes" id="fuelNotes"></ul>
+        <div class="macros" id="macroCards"></div>
+        <div class="sectionTitle">Eating for this plan</div>
+        <div class="fuelTips" id="fuelNotes"></div>
         <div class="warn">Estimates from your inputs — a starting point, not a prescription, and not medical or dietary advice. If eating ever feels stressful or all-consuming, please talk to a healthcare professional.</div>
       </div>
     </div>
@@ -1571,14 +1612,32 @@ function updateProgress(){
   const pct=total?Math.round(done/total*100):0;
   $('progRing').style.setProperty('--pct',pct); $('progPct').textContent=pct+'%';
 }
+const MACROS=[
+  {k:'protein',label:'Protein',color:'#7C6BF0',kcalPerG:4},
+  {k:'carbs', label:'Carbs',  color:'#F2A93E',kcalPerG:4},
+  {k:'fat',   label:'Fat',    color:'#FF8FA3',kcalPerG:9}
+];
+function dirPill(direction){
+  const d=String(direction||'').toLowerCase();
+  let label='Around maintenance', cls='maint';
+  if(d.includes('deficit')){ label='Lean down'; cls='cut'; }
+  else if(d.includes('surplus')){ label='Lean gain'; cls='gain'; }
+  else if(d.includes('recomp')){ label='Recomp · hold'; cls='maint'; }
+  return '<span class="fuelDirPill '+cls+'"><span class="dot"></span>'+esc(label)+'</span>';
+}
 function renderFuel(){
   const n=S.plan.nutrition;
+  const grams={ protein:n.protein, carbs:n.carbs, fat:(n.fat||Math.round(getWeightKg()*0.8)) };
   $('calBig').textContent=n.calories;
-  $('calDir').textContent=n.direction?cap(n.direction):'';
-  $('mProtein').textContent=n.protein+'g';
-  $('mCarbs').textContent=n.carbs+'g';
-  $('mFat').textContent=(n.fat||Math.round(getWeightKg()*0.8))+'g';
-  const ul=$('fuelNotes'); ul.innerHTML=''; (n.notes||[]).forEach(x=>ul.appendChild(el('<li>'+x+'</li>')));
+  $('calDir').innerHTML=dirPill(n.direction);
+  // macro split (share of calories)
+  const kcal=MACROS.map(m=>grams[m.k]*m.kcalPerG);
+  const tot=kcal.reduce((a,b)=>a+b,0)||1;
+  const pct=MACROS.map((m,i)=>Math.round(kcal[i]/tot*100));
+  $('macroBar').innerHTML=MACROS.map((m,i)=>'<i style="width:'+(kcal[i]/tot*100).toFixed(1)+'%;background:'+m.color+'"></i>').join('');
+  $('macroLegend').innerHTML=MACROS.map((m,i)=>'<div class="legItem"><span class="legDot" style="background:'+m.color+'"></span><span class="legName">'+m.label+'</span><span class="legPct">'+pct[i]+'%</span></div>').join('');
+  $('macroCards').innerHTML=MACROS.map((m,i)=>'<div class="macroCard"><div class="macroAccent" style="background:'+m.color+'"></div><div class="macroG">'+grams[m.k]+'<small>g</small></div><div class="macroK">'+m.label+'</div><div class="macroP">'+pct[i]+'% of cals</div></div>').join('');
+  const ul=$('fuelNotes'); ul.innerHTML=''; (n.notes||[]).forEach(x=>ul.appendChild(el('<div class="fuelTip">'+x+'</div>')));
 }
 
 /* ---------- tabs / screens ---------- */
@@ -1920,11 +1979,20 @@ function renderTodayCard(){
     '<div class="body"><div class="t">'+t+'</div><div class="d">'+esc(d)+'</div></div>'+(go?'<div class="go"><button class="btn primary" id="todayGo">Start</button></div>':'');
   const gb=$('todayGo'); if(gb) gb.onclick=()=>{ S.day=i; switchTab('train'); renderDay(); window.scrollTo({top:0,behavior:'smooth'}); };
 }
-function statCardHTML(v,k){ return '<div class="statCard"><div class="v">'+esc(String(v))+'</div><div class="k">'+esc(k)+'</div></div>'; }
+function statCardHTML(v,k,icon){ return '<div class="statCard">'+(icon?statIcon(icon):'')+'<div class="v">'+esc(String(v))+'</div><div class="k">'+esc(k)+'</div></div>'; }
+const STAT_IC={
+  flame:'<path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.4-.5-2-1-3-1.1-2.1-.2-4 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.2.4-2.3 1-3a2.5 2.5 0 002.5 2.5z"/>',
+  check:'<path d="M20 6L9 17l-5-5"/>',
+  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>'
+};
+function statIcon(p){ return '<div class="statIc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg></div>'; }
 function renderStats(){
   let tw=0,twDone=0; (S.plan.week||[]).forEach((w,i)=>{ if(w.train){ tw++; if(dayStatus(i)==='done') twDone++; } });
   const pct=tw?Math.round(twDone/tw*100):0;
-  $('statCards').innerHTML=statCardHTML(computeStreak(),'day streak')+statCardHTML((S.history||[]).length,'sessions')+statCardHTML(pct+'%','this week');
+  $('statCards').innerHTML=
+    statCardHTML(computeStreak(),'day streak',STAT_IC.flame)+
+    statCardHTML((S.history||[]).length,'sessions',STAT_IC.check)+
+    statCardHTML(pct+'%','this week',STAT_IC.target);
 }
 function renderWeekStrip(){
   const host=$('weekStrip'); if(!host) return; host.innerHTML=''; const dts=weekDates();
@@ -1948,10 +2016,10 @@ function renderTrend(){
   const host=$('trendWrap'); if(!host) return; host.innerHTML='';
   const hist=(S.history||[]).slice(0,8).slice().reverse();
   if(hist.length<2) return;
-  const wrap=el('<div><div class="sectionTitle">Recent sessions</div><div class="card" style="padding:14px"><div class="barChart"></div></div></div>');
+  const wrap=el('<div><div class="sectionTitle">Recent sessions</div><div class="card" style="padding:16px 14px 10px"><div class="barChart"></div></div></div>');
   const chart=wrap.querySelector('.barChart');
   hist.forEach(h=>{ const pct=h.total?Math.round(h.done/h.total*100):100;
-    chart.appendChild(el('<div class="barCol"><div class="bw"><div class="bar" style="height:'+Math.max(8,pct)+'%"></div></div><div class="bl">'+esc(h.date.slice(5).replace('-','/'))+'</div></div>'));
+    chart.appendChild(el('<div class="barCol"><div class="bval">'+pct+'%</div><div class="bw"><div class="bar" style="height:'+Math.max(6,pct)+'%"></div></div><div class="bl">'+esc(h.date.slice(5).replace('-','/'))+'</div></div>'));
   });
   host.appendChild(wrap);
 }
