@@ -573,6 +573,10 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
 .dayChip.today .d{color:var(--violet);font-weight:700}
 .exoHint{margin-left:auto;align-self:center;font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);white-space:nowrap}
 .exo.open .exoHint{display:none}
+.exo button.head{width:100%;background:none;border:0;font:inherit;color:inherit;text-align:left}
+.swapRow{display:flex;gap:8px;flex-wrap:wrap}
+.swapBtn.ghost{background:transparent;color:var(--ink-soft)}
+.swapBtn.ghost:hover{background:var(--surface-2);color:var(--ink)}
 
 </style>
 </head>
@@ -731,18 +735,6 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
 
 </div>
 
-<!-- account modal -->
-<div class="scrim" id="acctScrim">
-  <div class="modal">
-    <h3>Your account</h3>
-    <p id="acctEmail">Signed in.</p>
-    <div class="acts">
-      <button class="btn soft" id="acctClose">Close</button>
-      <button class="btn primary" id="acctLogout">Log out</button>
-    </div>
-  </div>
-</div>
-
 <div id="toast"></div>
 
 <!-- build loader: animated aura orb -->
@@ -755,20 +747,21 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
   </div>
 </div>
 
-<!-- settings modal -->
+<!-- settings + account hub -->
 <div class="scrim" id="setScrim">
   <div class="modal">
     <h3>Settings</h3>
-    <p>Personalize how Aesthete greets you, or start a fresh plan.</p>
+    <p id="setEmail">Signed in.</p>
     <div class="sectlbl">Display name</div>
     <div class="settingsRow">
       <input id="setName" type="text" maxlength="24" placeholder="What should we call you?" autocomplete="off">
       <button class="btn primary" id="setNameSave" style="flex:0 0 auto">Save</button>
     </div>
-    <div class="sectlbl">Your plan</div>
+    <div class="sectlbl" id="setPlanLbl">Your plan</div>
     <button class="btn danger" id="resetOpen" style="width:100%">Reset &amp; restart workout plan</button>
     <div class="acts">
       <button class="btn soft" id="setClose" style="flex:1">Close</button>
+      <button class="btn soft" id="setLogout" style="flex:1">Log out</button>
     </div>
   </div>
 </div>
@@ -1503,6 +1496,7 @@ function errMsg(err){
   const m=(err&&err.message)||'';
   if(m==='AUTH') return 'Please sign in again.';
   if(m==='NO_KEY') return 'No key set.';
+  if(/GEMINI_API_KEY|missing GEMINI|not configured|missing SUPABASE/i.test(m)) return 'AI features aren’t switched on yet — no API key is set on the server.';
   if(m==='RATE') return 'Free-tier limit hit — wait a minute and retry.';
   if(m==='BADKEY') return 'That key was rejected — check it at aistudio.google.com.';
   if(m==='NETWORK') return "Couldn't reach the coach (network). Check your connection and retry.";
@@ -1542,6 +1536,7 @@ function repPart(scheme){ const p=String(scheme).split('×'); return p.length>1?
 function renderPlan(plan){
   S.plan=plan; S.done={};
   $('planSub').textContent=plan.summary;
+  setPlanHeader();
   buildDayRail();
   S.day=defaultDayIdx();
   S.coach=[]; $('msgs').innerHTML=''; pushMsg('model',coachIntro());
@@ -1597,8 +1592,8 @@ function renderDay(){
 function exoEl(bi,it,ii){
   const n=setCount(it.scheme), reps=repPart(it.scheme);
   const ex=el('<div class="exo"></div>');
-  const head=el('<div class="head"><div class="nm">'+esc(it.exercise)+'</div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>');
-  head.onclick=e=>{ if(e.target.closest('.dot'))return; ex.classList.toggle('open'); };
+  const head=el('<button type="button" class="head" aria-label="Toggle how-to for '+esc(it.exercise)+'"><div class="nm">'+esc(it.exercise)+'</div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>');
+  head.onclick=()=>ex.classList.toggle('open');
   ex.appendChild(head);
   const setRow=el('<div class="setRow"></div>');
   const dots=el('<div class="dots"></div>');
@@ -1615,11 +1610,45 @@ function exoEl(bi,it,ii){
   const body=el('<div class="body"></div>');
   body.appendChild(el('<div class="metaGrid"><div class="mc"><div class="k">Effort</div><div class="v">'+esc(it.load||'—')+'</div></div><div class="mc"><div class="k">Rest</div><div class="v">'+esc(it.rest||'—')+'</div></div><div class="mc"><div class="k">Tempo</div><div class="v">'+esc(it.tempo||'—')+'</div></div></div>'));
   body.appendChild(el(howtoHTML(it)));
-  const swap=el('<button class="swapBtn">↻ Swap this exercise</button>');
-  swap.onclick=()=>{ switchTab('coach'); $('askInput').value='Swap "'+it.exercise+'" for another option I can do with my equipment, same sets and reps.'; ask(); };
-  body.appendChild(swap);
+  const swapRow=el('<div class="swapRow"></div>');
+  const swapB=el('<button class="swapBtn">↻ Swap exercise</button>');
+  swapB.onclick=()=>swapExercise(bi,ii);
+  swapRow.appendChild(swapB);
+  if(sb&&session){
+    const askB=el('<button class="swapBtn ghost">Ask coach ›</button>');
+    askB.onclick=()=>{ switchTab('coach'); $('askInput').value='Swap "'+it.exercise+'" for another option I can do with my equipment, same sets and reps.'; ask(); };
+    swapRow.appendChild(askB);
+  }
+  body.appendChild(swapRow);
   ex.appendChild(body);
   return ex;
+}
+function swapExercise(bi,ii){
+  const d=S.dayMap[S.day]; if(!d||!d.blocks||!d.blocks[bi]) return;
+  const it=d.blocks[bi].items[ii]; if(!it) return;
+  const cur=EX_BYNAME[it.exercise];
+  const used=new Set(); (d.blocks||[]).forEach(b=>(b.items||[]).forEach(x=>used.add(x.exercise)));
+  const cand=EX.filter(x=>{
+    if(x.n===it.exercise||used.has(x.n)) return false;
+    if(!x.e.includes(S.equipment)) return false;
+    if(x.adv&&S.experience==='beginner') return false;
+    if(x.j&&x.j.some(j=>(S.injuries||[]).includes(j))) return false;
+    if(S.tightWaist&&x.tw) return false;
+    if(cur){
+      if(cur.p) return x.p===cur.p;                                  // same movement pattern
+      if(cur.tag) return x.tag===cur.tag;                            // same power/cardio type
+      if(cur.g&&cur.g.length) return x.g&&x.g.some(g=>cur.g.includes(g))&&(!cur.iso||x.iso); // same muscle
+      return false;
+    }
+    return archetypeFor({exercise:x.n})===archetypeFor(it);          // unknown name → match motion
+  });
+  if(!cand.length){
+    if(sb&&session){ switchTab('coach'); $('askInput').value='Swap "'+it.exercise+'" for another option I can do with my equipment, same sets and reps.'; ask(); return; }
+    toast('No alternative fits your equipment & limits.','err'); return;
+  }
+  const pick=cand[Math.floor(Math.random()*cand.length)];
+  d.blocks[bi].items[ii]=Object.assign({},it,{exercise:pick.n, note:pick.note||''});
+  renderDay(); saveState(); toast('Swapped in '+pick.n+'.');
 }
 function dayCounts(di){
   const d=S.dayMap[di]; if(!d) return {done:0,total:0};
@@ -1669,8 +1698,9 @@ function switchTab(name){
   if(name==='track') renderTrack();
   if(name==='coach') setTimeout(()=>{ const m=$('msgs'); if(m) m.scrollTop=m.scrollHeight; $('askInput').focus(); },30);
 }
-function showPlan(){ $('screenBuild').style.display='none'; $('screenPlan').style.display='flex'; $('tabbar').style.display='flex'; window.scrollTo({top:0,behavior:'smooth'}); }
-function showBuild(){ $('screenPlan').style.display='none'; $('tabbar').style.display='none'; $('screenBuild').style.display='block'; updateBackToPlan(); window.scrollTo({top:0,behavior:'smooth'}); }
+function topbar(show){ const t=document.querySelector('.topbar'); if(t) t.style.display=show?'flex':'none'; }
+function showPlan(){ $('screenBuild').style.display='none'; $('screenPlan').style.display='flex'; $('tabbar').style.display='flex'; topbar(false); window.scrollTo({top:0,behavior:'smooth'}); }
+function showBuild(){ $('screenPlan').style.display='none'; $('tabbar').style.display='none'; $('screenBuild').style.display='block'; topbar(true); updateBackToPlan(); window.scrollTo({top:0,behavior:'smooth'}); }
 
 /* ---------- coach ---------- */
 function coachIntro(){ return S.planSource==='ai' ? "Hi — I shaped this plan around you. Ask me to swap anything, shorten a day, or tell you what to eat. ✦" : "Here's your plan. Connect a free key and I can personalize it and answer anything — swaps, timing, nutrition."; }
@@ -1748,9 +1778,7 @@ async function authSubmit(){
   finally{ $('authPrimary').disabled=false; }
 }
 function refreshConnect(){ const b=$('connectBtn'), l=$('connectLabel'); if(session&&session.user){ b.classList.add('live'); l.textContent=(session.user.email||'account').split('@')[0]; } else { b.classList.remove('live'); l.textContent='account'; } }
-function openAccount(){ if(!session) return; $('acctEmail').textContent='Signed in as '+(session.user.email||''); $('acctScrim').classList.add('on'); }
-function closeAccount(){ $('acctScrim').classList.remove('on'); }
-async function logout(){ try{ await sb.auth.signOut(); }catch(e){} closeAccount(); }
+async function logout(){ try{ await sb.auth.signOut(); }catch(e){} closeSettings(); }
 
 let saveTimer;
 function snapshotProfile(){ const keys=['preset','sex','age','units','heightCm','weightKg','bodyfat','experience','days','sessionLen','equipment','emphasis','tightWaist','explosive','conditioning','bias','pace','model','planSource']; const o={}; keys.forEach(k=>o[k]=S[k]); return o; }
@@ -1772,6 +1800,7 @@ async function loadUserState(){
   }catch(e){ showBuild(); }
 }
 function renderSaved(){
+  setPlanHeader();
   buildDayRail();
   S.day=defaultDayIdx();
   S.coach=[]; $('msgs').innerHTML=''; pushMsg('model',coachIntro());
@@ -1927,9 +1956,17 @@ function renderSilho(){
 /* ---------- settings · display name · reset ---------- */
 function displayName(){ return (S.displayName||'').trim(); }
 function greetWord(){ const h=new Date().getHours(); return h<5?'Still up':h<12?'Good morning':h<17?'Good afternoon':h<22?'Good evening':'Winding down'; }
-function openSettings(){ $('setName').value=displayName(); $('setScrim').classList.add('on'); }
+function openSettings(){
+  $('setName').value=displayName();
+  $('setEmail').textContent=(session&&session.user)?('Signed in as '+(session.user.email||'')):'Not signed in.';
+  const hasPlan=!!(S.plan&&S.plan.days&&S.plan.days.length);
+  $('setPlanLbl').style.display=hasPlan?'block':'none';
+  $('resetOpen').style.display=hasPlan?'block':'none';
+  $('setScrim').classList.add('on');
+}
+function setPlanHeader(){ const t=$('planTitle'); if(t) t.textContent=displayName()?(displayName()+'’s plan'):'Your plan'; }
 function closeSettings(){ $('setScrim').classList.remove('on'); }
-function saveName(){ S.displayName=$('setName').value.trim().slice(0,24); saveSettings(); refreshGreeting(); toast(displayName()?('Hi, '+displayName()+' ✦'):'Name cleared.'); }
+function saveName(){ S.displayName=$('setName').value.trim().slice(0,24); saveSettings(); refreshGreeting(); setPlanHeader(); toast(displayName()?('Hi, '+displayName()+' ✦'):'Name cleared.'); }
 async function saveSettings(){ if(!sb||!session) return; try{ await sb.from('user_plans').upsert({ user_id:session.user.id, settings:{displayName:S.displayName||''}, updated_at:new Date().toISOString() },{onConflict:'user_id'}); }catch(e){} }
 function openReset(){ closeSettings(); $('resetScrim').classList.add('on'); }
 function closeReset(){ $('resetScrim').classList.remove('on'); }
@@ -2082,11 +2119,9 @@ function init(){
   $('resetCancel').onclick=closeReset;
   $('resetScrim').addEventListener('click',e=>{ if(e.target===$('resetScrim')) closeReset(); });
   $('resetConfirm').onclick=doReset;
-  // account + auth
-  $('connectBtn').onclick=openAccount;
-  $('acctClose').onclick=closeAccount;
-  $('acctScrim').addEventListener('click',e=>{ if(e.target===$('acctScrim')) closeAccount(); });
-  $('acctLogout').onclick=logout;
+  $('setLogout').onclick=logout;
+  // account button (build screen) opens the same settings hub
+  $('connectBtn').onclick=openSettings;
   $('authPrimary').onclick=authSubmit;
   $('authToggle').onclick=()=>setAuthMode(authMode==='login'?'signup':'login');
   $('authPass').addEventListener('keydown',e=>{ if(e.key==='Enter') authSubmit(); });
