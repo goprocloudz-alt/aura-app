@@ -617,6 +617,21 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
 .swapBtn.ghost{background:transparent;color:var(--ink-soft)}
 .swapBtn.ghost:hover{background:var(--surface-2);color:var(--ink)}
 
+/* ---- focus selection cards (physique image) ---- */
+.goal{padding:0;overflow:hidden}
+.goal::before{display:none}
+.goal.sel::after{display:none}
+.goalImg{position:relative;height:158px;overflow:hidden;background:linear-gradient(160deg,var(--violet-wash),#fbfaff)}
+.goalImg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 14%;opacity:0;transition:opacity .5s ease}
+.goalImg img.on{opacity:1}
+.goalCheck{position:absolute;top:10px;right:10px;width:25px;height:25px;border-radius:50%;background:linear-gradient(180deg,#7e5cff,var(--violet));display:none;place-items:center;z-index:2;box-shadow:0 5px 12px -4px rgba(107,73,240,.75),inset 0 1px 0 rgba(255,255,255,.4)}
+.goalCheck svg{width:14px;height:14px}
+.goal.sel .goalCheck{display:grid}
+.goalTxt{padding:13px 15px 16px}
+.goal .gt{margin-bottom:4px;padding-right:0}
+.goal.sel{border-color:var(--violet);box-shadow:0 0 0 2px var(--violet-wash),var(--float)}
+.goal.sel .goalImg img{transform:scale(1.04);transition:transform .5s ease, opacity .5s ease}
+
 </style>
 </head>
 <body>
@@ -643,7 +658,6 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
     <section class="section">
       <div class="steplabel"><span class="ix">01</span><h2>Your focus</h2><span class="hint">pick one</span></div>
       <div class="goals" id="goals"></div>
-      <div class="card silho" id="silho"></div>
     </section>
 
     <section class="section">
@@ -1440,7 +1454,11 @@ function renderGoals(){
   const box=$('goals'); box.innerHTML='';
   auraPresets().forEach(k=>{
     const c=presetCopy(k);
-    const g=el('<button class="goal '+(k===S.preset?'sel':'')+'"><div class="gt">'+esc(c.t)+'</div><div class="gd">'+esc(c.d)+'</div></button>');
+    const g=el('<button class="goal '+(k===S.preset?'sel':'')+'"><div class="goalImg"><div class="goalCheck"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div></div><div class="goalTxt"><div class="gt">'+esc(c.t)+'</div><div class="gd">'+esc(c.d)+'</div></div></button>');
+    const img=document.createElement('img'); img.loading='lazy'; img.alt=c.t; img.decoding='async';
+    img.onload=()=>img.classList.add('on'); img.onerror=()=>img.remove();
+    img.src='focus/'+k+'.jpg';
+    g.querySelector('.goalImg').appendChild(img);
     g.onclick=()=>applyPreset(k);
     box.appendChild(g);
   });
