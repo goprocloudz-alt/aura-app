@@ -397,7 +397,7 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
 
 /* ---- focus silhouette ---- */
 .silho{display:flex;gap:16px;align-items:center;margin-top:14px;padding:16px 18px}
-.silhoFig{flex:0 0 auto;width:88px;height:128px;position:relative;display:grid;place-items:center}
+.silhoFig{flex:0 0 auto;width:96px;height:152px;position:relative;display:grid;place-items:center}
 .silhoFig svg{width:100%;height:100%;overflow:visible}
 .silhoBody{fill:rgba(107,73,240,.16);stroke:rgba(107,73,240,.4);stroke-width:1.4;transition:.4s}
 .silhoGlow{fill:url(#silhoGrad);opacity:0;transition:opacity .5s}
@@ -1792,30 +1792,50 @@ const PHYSIQUE={
   'lean-bulk':{sh:24,wa:13,hp:20,focus:['shoulders','glutes']},
   foundation:{sh:22,wa:13,hp:19,focus:['shoulders']}
 };
-function regionSVG(r,sh,wa,hp){
-  if(r==='shoulders') return '<ellipse class="silhoFocus" cx="'+(50-sh+6)+'" cy="37" rx="7.5" ry="5.5"/><ellipse class="silhoFocus" cx="'+(50+sh-6)+'" cy="37" rx="7.5" ry="5.5"/>';
-  if(r==='glutes') return '<ellipse class="silhoFocus" cx="'+(50-hp/2)+'" cy="95" rx="'+(hp/2+1)+'" ry="8"/><ellipse class="silhoFocus" cx="'+(50+hp/2)+'" cy="95" rx="'+(hp/2+1)+'" ry="8"/>';
-  if(r==='legs') return '<ellipse class="silhoFocus" cx="43" cy="116" rx="6.5" ry="16"/><ellipse class="silhoFocus" cx="57" cy="116" rx="6.5" ry="16"/>';
-  if(r==='core') return '<ellipse class="silhoFocus" cx="50" cy="66" rx="8.5" ry="11"/>';
-  if(r==='back') return '<ellipse class="silhoFocus" cx="50" cy="50" rx="'+(sh-7)+'" ry="13"/>';
-  return '';
+function f1(n){ return Math.round(n*10)/10; }
+function smoothThrough(pts){            // Catmull-Rom spline → smooth cubic bezier path
+  let d='';
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||pts[i+1];
+    const c1x=p1[0]+(p2[0]-p0[0])/6, c1y=p1[1]+(p2[1]-p0[1])/6;
+    const c2x=p2[0]-(p3[0]-p1[0])/6, c2y=p2[1]-(p3[1]-p1[1])/6;
+    d+='C'+f1(c1x)+' '+f1(c1y)+' '+f1(c2x)+' '+f1(c2y)+' '+f1(p2[0])+' '+f1(p2[1]);
+  }
+  return d;
 }
 function silhouetteSVG(){
   const b=PHYSIQUE[S.preset]||PHYSIQUE.sculpt;
-  let sh=b.sh,wa=b.wa,hp=b.hp;
-  if(S.sex==='male'){ sh+=2; wa+=1.5; hp-=4; }
-  sh=Math.max(16,sh); hp=Math.max(13,hp);
-  const torso='M '+(50-sh)+' 33 L '+(50+sh)+' 33 L '+(50+wa)+' 72 L '+(50+hp)+' 90 L '+(50-hp)+' 90 L '+(50-wa)+' 72 Z';
-  const legL='M '+(50-hp)+' 88 L '+(50-1.5)+' 90 L '+(50-4)+' 146 L '+(50-13)+' 146 Z';
-  const legR='M '+(50+hp)+' 88 L '+(50+1.5)+' 90 L '+(50+4)+' 146 L '+(50+13)+' 146 Z';
-  const armL='M '+(50-sh+1)+' 34 L '+(50-sh+6)+' 34 L '+(50-wa-2)+' 74 L '+(50-wa-7)+' 74 Z';
-  const armR='M '+(50+sh-1)+' 34 L '+(50+sh-6)+' 34 L '+(50+wa+2)+' 74 L '+(50+wa+7)+' 74 Z';
-  const focus=(b.focus||[]).map(r=>regionSVG(r,sh,wa,hp)).join('');
-  return '<svg viewBox="0 0 100 150" aria-hidden="true">'+
-    '<defs><linearGradient id="silhoGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB39B"/><stop offset=".5" stop-color="#C2B2F6"/><stop offset="1" stop-color="#A7C2FF"/></linearGradient></defs>'+
-    '<circle class="silhoBody" cx="50" cy="16" r="8.5"/>'+
-    '<path class="silhoBody" d="'+torso+'"/><path class="silhoBody" d="'+armL+'"/><path class="silhoBody" d="'+armR+'"/>'+
-    '<path class="silhoBody" d="'+legL+'"/><path class="silhoBody" d="'+legR+'"/>'+focus+'</svg>';
+  const female=(S.sex!=='male');
+  let sh=b.sh, wa=b.wa, hp=b.hp;
+  if(!female){ sh+=4; wa+=4; hp=Math.max(hp-3,wa); }   // broad shoulders, slim hips → V-taper
+  sh=Math.max(17,sh); wa=Math.max(11,wa); hp=Math.max(13,hp);
+  const cx=60, bust=female?sh-1:sh-3, ankle=female?7:8;
+  // right-side outline, neck → shoulder → bust → waist → hip → thigh → ankle (smooth)
+  const R=[[cx,36],[cx+sh,47],[cx+bust,61],[cx+wa,87],[cx+hp,111],[cx+hp*0.8,150],[cx+ankle,201]];
+  const L=R.slice().reverse().map(p=>[2*cx-p[0],p[1]]);
+  const body='M'+f1(R[0][0])+' '+f1(R[0][1])+smoothThrough(R)+'L'+f1(L[0][0])+' '+f1(L[0][1])+smoothThrough(L)+'Z';
+  const gap='M60 117C60 142 60 172 60 201';   // suggests two legs
+  const G={
+    shoulders:[[cx-sh+4,50],[cx+sh-4,50]],
+    back:[[cx-sh*0.42,66],[cx+sh*0.42,66]],
+    core:[[cx,92]],
+    glutes:[[cx-hp*0.42,119],[cx+hp*0.42,119]],
+    legs:[[cx-9,152],[cx+9,152]]
+  };
+  let glows='';
+  (b.focus||[]).forEach(r=>{ (G[r]||[]).forEach(pt=>{ glows+='<circle cx="'+f1(pt[0])+'" cy="'+f1(pt[1])+'" r="15" fill="url(#focusGlow)"/>'; }); });
+  return '<svg viewBox="0 0 120 212" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+
+    '<defs>'+
+      '<linearGradient id="bodyFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CDC0F8"/><stop offset="1" stop-color="#AFC8FB"/></linearGradient>'+
+      '<radialGradient id="focusGlow"><stop offset="0" stop-color="#FF9FB0" stop-opacity=".95"/><stop offset="45%" stop-color="#F6B25F" stop-opacity=".5"/><stop offset="100%" stop-color="#A7C2FF" stop-opacity="0"/></radialGradient>'+
+      '<clipPath id="bodyClip"><path d="'+body+'"/></clipPath>'+
+      '<filter id="silhoSoft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3.2"/></filter>'+
+    '</defs>'+
+    '<ellipse cx="60" cy="20" rx="10.5" ry="12.5" fill="url(#bodyFill)" stroke="rgba(107,73,240,.30)" stroke-width="1.1"/>'+
+    '<path d="'+body+'" fill="url(#bodyFill)" stroke="rgba(107,73,240,.34)" stroke-width="1.2"/>'+
+    '<g clip-path="url(#bodyClip)" filter="url(#silhoSoft)">'+glows+'</g>'+
+    '<path d="'+gap+'" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.3" stroke-linecap="round"/>'+
+    '</svg>';
 }
 function renderSilho(){
   const box=$('silho'); if(!box) return;
