@@ -568,6 +568,12 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
 .barCol .bval{font-family:var(--mono);font-size:9px;font-weight:700;color:var(--ink-soft)}
 .barCol .bar{background:linear-gradient(180deg,var(--a2),var(--a4) 60%,var(--a5))}
 
+/* ---- train page polish ---- */
+.dayChip.today{border-color:var(--violet)}
+.dayChip.today .d{color:var(--violet);font-weight:700}
+.exoHint{margin-left:auto;align-self:center;font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);white-space:nowrap}
+.exo.open .exoHint{display:none}
+
 </style>
 </head>
 <body>
@@ -1537,23 +1543,37 @@ function renderPlan(plan){
   S.plan=plan; S.done={};
   $('planSub').textContent=plan.summary;
   buildDayRail();
-  const ft=plan.week.findIndex(w=>w.train); S.day=ft>=0?ft:0;
+  S.day=defaultDayIdx();
   S.coach=[]; $('msgs').innerHTML=''; pushMsg('model',coachIntro());
   renderDay(); renderFuel(); renderCoachSug(); updateProgress(); renderTrack(); updateBackToPlan();
   showPlan(); switchTab('train');
   if(!S._restoring) saveState();
 }
+function defaultDayIdx(){
+  const wk=(S.plan&&S.plan.week)||[]; const t=todayMonIdx();
+  if(wk[t]&&wk[t].train) return t;                       // today's workout
+  for(let k=1;k<=7;k++){ const j=(t+k)%7; if(wk[j]&&wk[j].train) return j; } // next training day
+  const ft=wk.findIndex(w=>w&&w.train); return ft>=0?ft:0;
+}
+function scrollRailToSel(){
+  requestAnimationFrame(()=>{
+    const rail=$('dayRail'), chip=rail&&rail.children[S.day];
+    if(rail&&chip&&chip.clientWidth) rail.scrollTo({left:chip.offsetLeft-rail.clientWidth/2+chip.clientWidth/2, behavior:'smooth'});
+  });
+}
 function buildDayRail(){
-  const rail=$('dayRail'); rail.innerHTML=''; S.dayMap={}; let t=0;
+  const rail=$('dayRail'); rail.innerHTML=''; S.dayMap={}; let t=0; const ti=todayMonIdx();
   S.plan.week.forEach((w,i)=>{ if(w.train){ S.dayMap[i]=S.plan.days[t]||null; t++; } });
   S.plan.week.forEach((w,i)=>{
-    const chip=el('<button class="dayChip '+(w.train?'train':'rest')+'"><div class="d">'+esc(w.day)+'</div><div class="t">'+(w.train?esc(w.type):'Rest')+(w.train&&w.power?'<span class="dot"></span>':'')+'</div></button>');
-    chip.onclick=()=>{ S.day=i; renderDay(); const r=rail.children[i]; if(r) r.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'}); };
+    const today=(i===ti);
+    const chip=el('<button class="dayChip '+(w.train?'train':'rest')+(today?' today':'')+'"><div class="d">'+(today?'Today':esc(w.day))+'</div><div class="t">'+(w.train?esc(w.type):'Rest')+(w.train&&w.power?'<span class="dot"></span>':'')+'</div></button>');
+    chip.onclick=()=>{ S.day=i; renderDay(); };
     rail.appendChild(chip);
   });
 }
 function renderDay(){
   Array.from($('dayRail').children).forEach((c,i)=>c.classList.toggle('sel',i===S.day));
+  scrollRailToSel();
   const host=$('dayView'); host.innerHTML='';
   const w=S.plan.week[S.day], d=S.dayMap[S.day];
   if(!w||!w.train||!d){
@@ -1590,6 +1610,7 @@ function exoEl(bi,it,ii){
   }
   setRow.appendChild(dots);
   setRow.appendChild(el('<div class="scheme">'+esc(String(it.scheme).split('×')[0].trim())+(reps?' <small>× '+esc(reps)+'</small>':'')+'</div>'));
+  setRow.appendChild(el('<div class="exoHint">Form &amp; video ›</div>'));
   ex.appendChild(setRow);
   const body=el('<div class="body"></div>');
   body.appendChild(el('<div class="metaGrid"><div class="mc"><div class="k">Effort</div><div class="v">'+esc(it.load||'—')+'</div></div><div class="mc"><div class="k">Rest</div><div class="v">'+esc(it.rest||'—')+'</div></div><div class="mc"><div class="k">Tempo</div><div class="v">'+esc(it.tempo||'—')+'</div></div></div>'));
@@ -1752,7 +1773,7 @@ async function loadUserState(){
 }
 function renderSaved(){
   buildDayRail();
-  const ft=S.plan.week.findIndex(w=>w.train); S.day=ft>=0?ft:0;
+  S.day=defaultDayIdx();
   S.coach=[]; $('msgs').innerHTML=''; pushMsg('model',coachIntro());
   renderDay(); renderFuel(); renderCoachSug(); updateProgress(); renderTrack(); updateBackToPlan();
   showPlan(); switchTab('train');
@@ -1950,11 +1971,15 @@ function computeStreak(){
 function upsertHistory(entry){ S.history=(S.history||[]).filter(h=>h.date!==entry.date); S.history.push(entry); S.history.sort((a,b)=>a.date<b.date?1:-1); }
 async function saveHistory(){ if(!sb||!session) return; try{ await sb.from('user_plans').upsert({ user_id:session.user.id, history:S.history||[], updated_at:new Date().toISOString() },{onConflict:'user_id'}); }catch(e){} }
 function logCurrentDay(){
-  if(!S.plan) return; const i=S.day; const w=roleAt(i);
+  if(!S.plan) return; const i=S.day; const w=roleAt(i); const d=S.dayMap[i];
   if(!w.train){ toast('That’s a rest day 🌙'); return; }
+  // Pressing Complete finishes the whole session — fill every set so the day
+  // bar, weekly ring and history all stay in sync (the dots are for live
+  // ticking during the workout; this finalizes it).
+  ((d&&d.blocks)||[]).forEach((b,bi)=>(b.items||[]).forEach((it,ii)=>{ const n=setCount(it.scheme); for(let s=0;s<n;s++) S.done[i+':'+bi+':'+ii+':'+s]=true; }));
   const c=dayCounts(i);
-  upsertHistory({ date:ymd(weekDates()[i]), dow:i, role:w.role, type:w.type, label:(S.dayMap[i]&&S.dayMap[i].label)||w.type, done:c.done, total:c.total, madeUp:false });
-  saveHistory(); toast('Session logged 🎉'); renderDay(); if(S.tab==='track') renderTrack();
+  upsertHistory({ date:ymd(weekDates()[i]), dow:i, role:w.role, type:w.type, label:(d&&d.label)||w.type, done:c.done, total:c.total, madeUp:false });
+  saveHistory(); scheduleSave(); toast('Session complete 🎉'); renderDay(); updateProgress(); if(S.tab==='track') renderTrack();
 }
 function makeUp(i){
   const w=roleAt(i); const d=S.dayMap[i]; let total=0;
