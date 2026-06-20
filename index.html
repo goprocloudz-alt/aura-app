@@ -603,6 +603,33 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
 .statCard .statIc{width:30px;height:30px;border-radius:10px;margin:0 auto 9px;display:grid;place-items:center;background:linear-gradient(135deg,var(--a2),var(--a4));color:#fff;box-shadow:0 6px 14px -8px rgba(107,73,240,.5)}
 .statCard .statIc svg{width:17px;height:17px}
 .statCard .v{font-size:22px}
+/* ---- streak ---- */
+.streakHero{display:flex;align-items:center;gap:16px;padding:16px 18px;margin:14px 0;position:relative;overflow:hidden}
+.streakHero::after{content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(255,179,155,.16),transparent 70%);pointer-events:none}
+.streakFlame{position:relative;flex:0 0 auto;width:62px;height:62px;display:grid;place-items:center}
+.streakFlame svg{width:62px;height:62px;color:#cdc3ee;transition:color .3s}
+.streakNum{position:absolute;top:56%;left:50%;transform:translate(-50%,-50%);font-family:var(--disp);font-weight:800;font-size:21px;color:#fff;text-shadow:0 1px 4px rgba(60,30,90,.45)}
+.streakBody{min-width:0;position:relative;z-index:1}
+.streakTitle{font-family:var(--disp);font-weight:800;font-size:20px;letter-spacing:-.01em;line-height:1.1}
+.streakMsg{font-size:13px;color:var(--ink-soft);margin-top:4px;line-height:1.45}
+.streakBest{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--violet);margin-top:9px;background:var(--violet-wash);padding:4px 9px;border-radius:20px}
+.streakBest svg{width:11px;height:11px;color:var(--violet)}
+.streakHero.lvl0 .streakNum{color:var(--ink-soft);text-shadow:none}
+.streakHero.lvl1 .streakFlame svg{color:#A7C2FF}
+.streakHero.lvl2 .streakFlame svg{color:#B79CF2}
+.streakHero.lvl3 .streakFlame svg{color:#F4B45C}
+.streakHero.lvl4 .streakFlame svg{color:#FF9472}
+.streakHero.lvl5 .streakFlame svg{color:#FF5C92}
+.streakHero.lvl3 .streakFlame{filter:drop-shadow(0 4px 11px rgba(244,180,92,.5))}
+.streakHero.lvl4 .streakFlame{filter:drop-shadow(0 4px 13px rgba(255,148,114,.55))}
+.streakHero.lvl5 .streakFlame{filter:drop-shadow(0 5px 15px rgba(255,92,146,.6))}
+/* train-page streak chip */
+.dayHeadRight{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.streakChip{display:inline-flex;align-items:center;gap:4px;font-family:var(--disp);font-weight:800;font-size:13px;color:#fff;padding:4px 10px 4px 8px;border-radius:20px;background:linear-gradient(180deg,#FF9472,#FF6FA0);box-shadow:0 5px 12px -5px rgba(255,111,160,.6)}
+.streakChip svg{width:13px;height:13px;color:#fff}
+.streakChip.lvl1{background:linear-gradient(180deg,#A7C2FF,#7e8cff)}
+.streakChip.lvl2{background:linear-gradient(180deg,#B79CF2,var(--violet))}
+.streakChip.lvl3{background:linear-gradient(180deg,#F4B45C,#ef9a3a)}
 .barChart{height:124px}
 .barCol .bval{font-family:var(--mono);font-size:9px;font-weight:700;color:var(--ink-soft)}
 .barCol .bar{background:linear-gradient(180deg,var(--a2),var(--a4) 60%,var(--a5))}
@@ -758,6 +785,7 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
 
     <div id="tabTrack">
       <div class="greet"><h3 id="greetTitle">Welcome back</h3><div class="sub" id="greetSub"></div></div>
+      <div class="card streakHero" id="streakHero"></div>
       <div id="todayCard"></div>
       <div class="statCards" id="statCards"></div>
       <div class="sectionTitle">This week</div>
@@ -1654,7 +1682,9 @@ function renderDay(){
     return;
   }
   const moves=(d.blocks||[]).reduce((n,b)=>n+(b.items||[]).length,0);
-  host.appendChild(el('<div class="dayHead"><div><h3>'+esc(d.label||w.type)+'</h3><div class="meta">'+esc(d.focus||'')+'</div></div><div class="count">'+moves+' moves · ~'+S.sessionLen+'m</div></div>'));
+  const sk=streakStats();
+  const chip=sk.current>0?'<div class="streakChip lvl'+streakLevel(sk.current)+'" title="'+sk.current+'-day streak">'+flameSVG()+sk.current+'</div>':'';
+  host.appendChild(el('<div class="dayHead"><div><h3>'+esc(d.label||w.type)+'</h3><div class="meta">'+esc(d.focus||'')+'</div></div><div class="dayHeadRight">'+chip+'<div class="count">'+moves+' moves · ~'+S.sessionLen+'m</div></div></div>'));
   host.appendChild(el('<div class="dayBar"><i id="dayBarFill"></i></div>'));
   (d.blocks||[]).forEach((b,bi)=>{
     const meta=blockMeta(b.name);
@@ -2193,6 +2223,42 @@ function computeStreak(){
   }
   return streak;
 }
+function streakStats(){
+  const wk=(S.plan&&S.plan.week)||[];
+  const hist=new Set((S.history||[]).map(h=>h.date));
+  const isTrain=d=>{ const w=wk[(d.getDay()+6)%7]; return !!(w&&w.train); };
+  const cur=new Date(); cur.setHours(0,0,0,0); const today=ymd(cur);
+  let current=0;
+  for(let k=0;k<400;k++){ const d=new Date(cur); d.setDate(cur.getDate()-k); if(!isTrain(d)) continue; if(hist.has(ymd(d))) current++; else if(k===0) continue; else break; }
+  let best=current;
+  const ds=(S.history||[]).map(h=>h.date).filter(Boolean).sort();
+  if(ds.length){
+    const d=new Date(ds[0]+'T00:00:00'); d.setHours(0,0,0,0); let run=0;
+    while(d<=cur){ if(isTrain(d)){ if(hist.has(ymd(d))){ run++; if(run>best) best=run; } else if(ymd(d)!==today) run=0; } d.setDate(d.getDate()+1); }
+  }
+  return { current, best, todayTrain:isTrain(cur), todayDone:hist.has(today) };
+}
+function flameSVG(){ return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2c1.1 3-1 4.6-2.6 6.2C8 9.8 6.8 11.4 6.8 13.4a5.2 5.2 0 0010.4 0c0-1.8-.7-3.2-1.8-4.4-.3 1-1 1.8-1.9 2.1 1-2.9 1.2-6.1-1.5-8.9z"/></svg>'; }
+function streakLevel(n){ return n>=30?5:n>=14?4:n>=7?3:n>=3?2:n>=1?1:0; }
+function streakMsg(s){
+  if(s.current===0) return (s.todayTrain&&!s.todayDone) ? 'Train today to light your first flame.' : 'Finish a workout to start your streak.';
+  if(s.todayTrain&&!s.todayDone) return "Don't break the chain — train today to keep it alive!";
+  if(s.current>=30) return "30+ days. You're unstoppable. 🔥";
+  if(s.current>=14) return 'Two weeks strong — this is just who you are now.';
+  if(s.current>=7) return 'A full week in a row. Incredible momentum!';
+  if(s.current>=3) return 'Three in a row — the habit is forming.';
+  return 'Great start — show up again next session.';
+}
+function renderStreak(){
+  const host=$('streakHero'); if(!host) return;
+  const s=streakStats();
+  host.className='card streakHero lvl'+streakLevel(s.current);
+  host.innerHTML=
+    '<div class="streakFlame">'+flameSVG()+'<span class="streakNum">'+s.current+'</span></div>'+
+    '<div class="streakBody"><div class="streakTitle">'+(s.current?(s.current+(s.current===1?' day':' days')+' in a row'):'Start your streak')+'</div>'+
+    '<div class="streakMsg">'+esc(streakMsg(s))+'</div>'+
+    (s.best>s.current&&s.best>1?'<div class="streakBest">'+flameSVG()+'Personal best · '+s.best+' days</div>':'')+'</div>';
+}
 function upsertHistory(entry){ S.history=(S.history||[]).filter(h=>h.date!==entry.date); S.history.push(entry); S.history.sort((a,b)=>a.date<b.date?1:-1); }
 async function saveHistory(){ if(!sb||!session) return; try{ await sb.from('user_plans').upsert({ user_id:session.user.id, history:S.history||[], updated_at:new Date().toISOString() },{onConflict:'user_id'}); }catch(e){} }
 function logCurrentDay(){
@@ -2212,7 +2278,7 @@ function makeUp(i){
   upsertHistory({ date:ymd(weekDates()[i]), dow:i, role:w.role, type:w.type, label:(d&&d.label)||w.type, done:total, total:total, madeUp:true });
   saveHistory(); toast('Marked as made up ✓'); renderTrack();
 }
-function renderTrack(){ if(!S.plan) return; refreshGreeting(); renderTodayCard(); renderStats(); renderWeekStrip(); renderMakeups(); renderTrend(); renderHistory(); }
+function renderTrack(){ if(!S.plan) return; refreshGreeting(); renderStreak(); renderTodayCard(); renderStats(); renderWeekStrip(); renderMakeups(); renderTrend(); renderHistory(); }
 function refreshGreeting(){
   const t=$('greetTitle'); if(!t) return; const name=displayName();
   t.textContent=greetWord()+(name?(', '+name):'');
@@ -2223,7 +2289,7 @@ function renderTodayCard(){
   let cls='',ic='',t='',d='',go=false;
   if(!w.train){ cls='rest'; t='Rest day'; d='Recovery is where results show up — walk, stretch, hydrate, sleep.'; ic='<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'; }
   else if(st==='done'){ t='Today’s session is done 🎉'; d=esc(w.type)+' · logged'; ic='<path d="M20 6L9 17l-5-5"/>'; }
-  else { t='Today · '+esc(w.type); d=(S.dayMap[i]&&S.dayMap[i].focus)||'Your session is ready when you are.'; go=true; ic='<path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/>'; }
+  else { const sk=streakStats(); t='Today · '+esc(w.type); d=(sk.current>0?('Keep your '+sk.current+'-day streak alive — '):'')+((S.dayMap[i]&&S.dayMap[i].focus)||'your session is ready.'); go=true; ic='<path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/>'; }
   host.className='card todayCard '+cls;
   host.innerHTML='<div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ic+'</svg></div>'+
     '<div class="body"><div class="t">'+t+'</div><div class="d">'+esc(d)+'</div></div>'+(go?'<div class="go"><button class="btn primary" id="todayGo">Start</button></div>':'');
@@ -2240,7 +2306,7 @@ function renderStats(){
   let tw=0,twDone=0; (S.plan.week||[]).forEach((w,i)=>{ if(w.train){ tw++; if(dayStatus(i)==='done') twDone++; } });
   const pct=tw?Math.round(twDone/tw*100):0;
   $('statCards').innerHTML=
-    statCardHTML(computeStreak(),'day streak',STAT_IC.flame)+
+    statCardHTML(streakStats().best,'best streak',STAT_IC.flame)+
     statCardHTML((S.history||[]).length,'sessions',STAT_IC.check)+
     statCardHTML(pct+'%','this week',STAT_IC.target);
 }
