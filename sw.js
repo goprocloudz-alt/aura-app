@@ -4,7 +4,7 @@
    - same-origin GET assets (icons, manifest): cache-first
    - everything cross-origin (Supabase, Gemini, CDN) and all POSTs: untouched
    The /api/gemini proxy is a POST, so it is never cached. */
-const CACHE = 'aesthete-v2';
+const CACHE = 'aesthete-v3';
 const SHELL = [
   '/', '/index.html', '/manifest.webmanifest',
   '/icons/icon-180.png', '/icons/icon-192.png', '/icons/icon-512.png'
