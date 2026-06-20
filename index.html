@@ -505,13 +505,6 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
 .wDay.miss .mk{background:#fbeaee;border:1.5px solid #e0a9b6;color:#a8324c;font-size:13px;font-weight:700}
 .wDay.miss .mk::after{content:"!";color:#a8324c}
 .wDay .dt{font-size:10px;color:var(--ink-faint);margin-top:5px}
-.makeupRow{display:flex;flex-direction:column;gap:9px;margin:4px 0}
-.makeup{display:flex;align-items:center;gap:12px;padding:13px 15px;border-radius:var(--r-sm);background:var(--glass-strong);border:1px solid var(--glass-stroke);box-shadow:var(--edge)}
-.makeup .mt{flex:1;min-width:0}
-.makeup .mt .a{font-weight:700;font-size:14px}
-.makeup .mt .b{font-size:12px;color:var(--ink-soft);margin-top:2px}
-.makeupBtn{flex:0 0 auto;font-family:var(--body);font-weight:700;font-size:12.5px;color:#fff;background:linear-gradient(180deg,#7e5cff,var(--violet));border:0;border-radius:11px;padding:10px 14px;cursor:pointer;box-shadow:0 8px 18px -10px rgba(107,73,240,.6)}
-.makeupBtn:hover{filter:brightness(1.05)}
 .barChart{display:flex;align-items:flex-end;gap:8px;height:108px;padding:10px 4px 0}
 .barCol{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;height:100%}
 .barCol .bw{flex:1;width:100%;display:flex;align-items:flex-end}
@@ -790,7 +783,6 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
       <div class="statCards" id="statCards"></div>
       <div class="sectionTitle">This week</div>
       <div class="weekStrip" id="weekStrip"></div>
-      <div id="makeupWrap"></div>
       <div id="trendWrap"></div>
       <div class="sectionTitle">History</div>
       <div id="histWrap"></div>
@@ -2272,13 +2264,7 @@ function logCurrentDay(){
   upsertHistory({ date:ymd(weekDates()[i]), dow:i, role:w.role, type:w.type, label:(d&&d.label)||w.type, done:c.done, total:c.total, madeUp:false });
   saveHistory(); scheduleSave(); toast('Session complete 🎉'); renderDay(); updateProgress(); if(S.tab==='track') renderTrack();
 }
-function makeUp(i){
-  const w=roleAt(i); const d=S.dayMap[i]; let total=0;
-  ((d&&d.blocks)||[]).forEach(b=>(b.items||[]).forEach(it=>total+=setCount(it.scheme)));
-  upsertHistory({ date:ymd(weekDates()[i]), dow:i, role:w.role, type:w.type, label:(d&&d.label)||w.type, done:total, total:total, madeUp:true });
-  saveHistory(); toast('Marked as made up ✓'); renderTrack();
-}
-function renderTrack(){ if(!S.plan) return; refreshGreeting(); renderStreak(); renderTodayCard(); renderStats(); renderWeekStrip(); renderMakeups(); renderTrend(); renderHistory(); }
+function renderTrack(){ if(!S.plan) return; refreshGreeting(); renderStreak(); renderTodayCard(); renderStats(); renderWeekStrip(); renderTrend(); renderHistory(); }
 function refreshGreeting(){
   const t=$('greetTitle'); if(!t) return; const name=displayName();
   t.textContent=greetWord()+(name?(', '+name):'');
@@ -2316,18 +2302,6 @@ function renderWeekStrip(){
     host.appendChild(el('<div class="wDay '+dayStatus(i)+'"><div class="dn">'+esc(w.day)+'</div><div class="mk"></div><div class="dt">'+(dts[i].getMonth()+1)+'/'+dts[i].getDate()+'</div></div>'));
   });
 }
-function renderMakeups(){
-  const host=$('makeupWrap'); if(!host) return; host.innerHTML='';
-  const missed=[]; (S.plan.week||[]).forEach((w,i)=>{ if(dayStatus(i)==='miss') missed.push(i); });
-  if(!missed.length) return;
-  const wrap=el('<div><div class="sectionTitle">Missed days</div><div class="makeupRow"></div></div>');
-  const row=wrap.querySelector('.makeupRow');
-  missed.forEach(i=>{ const w=roleAt(i);
-    const m=el('<div class="makeup"><div class="mt"><div class="a">'+esc(w.day)+' · '+esc(w.type)+'</div><div class="b">Missed — mark it made up to keep your streak alive.</div></div></div>');
-    const b=el('<button class="makeupBtn">Mark made up</button>'); b.onclick=()=>makeUp(i); m.appendChild(b); row.appendChild(m);
-  });
-  host.appendChild(wrap);
-}
 function renderTrend(){
   const host=$('trendWrap'); if(!host) return; host.innerHTML='';
   const hist=(S.history||[]).slice(0,8).slice().reverse();
@@ -2345,7 +2319,7 @@ function renderHistory(){
   host.innerHTML=''; const list=el('<div class="histList"></div>');
   hist.slice(0,30).forEach(h=>{ const d=new Date(h.date+'T00:00:00'); const pct=h.total?Math.round(h.done/h.total*100):100;
     list.appendChild(el('<div class="histItem"><div class="hd"><div class="dno">'+d.getDate()+'</div><div class="mo">'+MON3[d.getMonth()]+'</div></div>'+
-      '<div class="hb"><div class="a">'+esc(h.label||h.type)+'</div><div class="b">'+esc(DOW[h.dow]||'')+(h.madeUp?' · <span class="madeup">made up</span>':'')+'</div></div>'+
+      '<div class="hb"><div class="a">'+esc(h.label||h.type)+'</div><div class="b">'+esc(DOW[h.dow]||'')+'</div></div>'+
       '<div class="hp">'+pct+'%</div></div>'));
   });
   host.appendChild(list);
