@@ -524,30 +524,32 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
 .emptyState .orb{width:72px;height:72px;margin:0 auto 14px}
 
 /* ---- fuel page (redesigned) ---- */
-.fuelHero{padding:20px}
-.fuelHeroTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.fuelKcal{font-family:var(--disp);font-weight:800;font-size:clamp(30px,8.5vw,38px);letter-spacing:-.02em;line-height:1;white-space:nowrap;background:linear-gradient(100deg,var(--a2),var(--a4) 55%,var(--a5));-webkit-background-clip:text;background-clip:text;color:transparent}
-.fuelKcalLbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-top:7px}
-.fuelDirPill{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:12.5px;padding:7px 13px;border-radius:30px;white-space:nowrap}
+.fuelHero{padding:22px 20px 20px;text-align:center;position:relative;overflow:hidden}
+.fuelHero::before{content:"";position:absolute;left:50%;top:-40px;width:240px;height:200px;transform:translateX(-50%);background:radial-gradient(circle,rgba(194,178,246,.22),transparent 68%);pointer-events:none}
+.fuelDonut{position:relative;width:172px;height:172px;margin:0 auto}
+.donutSvg{width:100%;height:100%;display:block}
+.donutSvg circle{transition:stroke-dasharray .6s ease, stroke-dashoffset .6s ease}
+.fuelDonutCenter{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1}
+.fuelKcal{font-family:var(--disp);font-weight:800;font-size:28px;letter-spacing:-.03em;line-height:1;background:linear-gradient(100deg,var(--a2),var(--a4) 55%,var(--a5));-webkit-background-clip:text;background-clip:text;color:transparent}
+.fuelKcalLbl{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);margin-top:5px}
+.fuelHeroMeta{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:16px;position:relative;z-index:1}
+.fuelRange{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink-soft)}
+.fuelDirPill{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:12.5px;padding:7px 14px;border-radius:30px;white-space:nowrap}
 .fuelDirPill .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
 .fuelDirPill.cut{background:rgba(122,107,240,.12);color:#5a45c8}.fuelDirPill.cut .dot{background:linear-gradient(var(--a5),var(--a4))}
 .fuelDirPill.gain{background:rgba(54,201,142,.15);color:#1f8f63}.fuelDirPill.gain .dot{background:#36c98e}
 .fuelDirPill.maint{background:var(--violet-wash);color:var(--violet)}.fuelDirPill.maint .dot{background:linear-gradient(var(--a2),var(--a4))}
-.macroBar{display:flex;height:15px;border-radius:8px;overflow:hidden;margin:22px 0 13px;background:var(--surface-2);box-shadow:inset 0 1px 2px rgba(80,60,140,.1)}
-.macroBar i{display:block;height:100%;transition:width .5s ease}
-.macroBar i+i{box-shadow:inset 1.5px 0 0 rgba(255,255,255,.7)}
-.macroLegend{display:flex;justify-content:space-between;gap:8px}
-.legItem{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-soft);min-width:0}
-.legDot{width:10px;height:10px;border-radius:3px;flex:0 0 auto}
-.legName{font-weight:500}
-.legPct{font-family:var(--mono);font-weight:700;color:var(--ink)}
 .macros{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:14px 0 6px}
-.macroCard{position:relative;background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur-sm);backdrop-filter:var(--glass-blur-sm);border:1px solid var(--glass-stroke);box-shadow:var(--edge);border-radius:var(--r-sm);padding:17px 12px 14px;text-align:center;overflow:hidden}
+.macroCard{position:relative;background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur-sm);backdrop-filter:var(--glass-blur-sm);border:1px solid var(--glass-stroke);box-shadow:var(--edge);border-radius:var(--r-sm);padding:18px 10px 13px;text-align:center;overflow:hidden}
+.macroCard.protein{background:linear-gradient(180deg,rgba(124,107,240,.13),rgba(255,255,255,.45))}
+.macroCard.carbs{background:linear-gradient(180deg,rgba(242,169,62,.15),rgba(255,255,255,.45))}
+.macroCard.fat{background:linear-gradient(180deg,rgba(255,143,163,.15),rgba(255,255,255,.45))}
 .macroAccent{position:absolute;top:0;left:0;right:0;height:4px}
+.macroDot{width:9px;height:9px;border-radius:50%;margin:0 auto 7px}
 .macroG{font-family:var(--disp);font-weight:800;font-size:23px;line-height:1}
 .macroG small{font-size:12px;font-weight:600;color:var(--ink-soft);margin-left:1px}
-.macroK{font-weight:600;font-size:13px;margin-top:6px}
-.macroP{font-family:var(--mono);font-size:9px;letter-spacing:.04em;color:var(--ink-faint);margin-top:4px}
+.macroK{font-weight:600;font-size:13px;margin-top:5px}
+.macroP{font-family:var(--mono);font-size:8.5px;letter-spacing:.02em;color:var(--ink-faint);margin-top:4px}
 .fuelTips{display:flex;flex-direction:column;gap:9px;margin-bottom:16px}
 .fuelTip{position:relative;padding:13px 15px 13px 40px;border-radius:var(--r-sm);background:var(--glass-strong);-webkit-backdrop-filter:var(--glass-blur-sm);backdrop-filter:var(--glass-blur-sm);border:1px solid var(--glass-stroke);box-shadow:var(--edge);font-size:13.5px;color:var(--ink-soft);line-height:1.55}
 .fuelTip b{color:var(--ink)}
@@ -756,15 +758,10 @@ input[type=number], #authForm input, .askRow input, .modal input, .modal select{
     <div id="tabFuel">
       <div style="padding:14px 0 0">
         <div class="card fuelHero">
-          <div class="fuelHeroTop">
-            <div>
-              <div class="fuelKcal" id="calBig">—</div>
-              <div class="fuelKcalLbl">kcal / day target</div>
-            </div>
-            <div id="calDir"></div>
+          <div class="fuelDonut" id="fuelDonut">
+            <div class="fuelDonutCenter"><div class="fuelKcal" id="calBig">—</div><div class="fuelKcalLbl">kcal / day</div></div>
           </div>
-          <div class="macroBar" id="macroBar"></div>
-          <div class="macroLegend" id="macroLegend"></div>
+          <div class="fuelHeroMeta"><div id="calDir"></div><div class="fuelRange" id="calRange"></div></div>
         </div>
         <div class="macros" id="macroCards"></div>
         <div class="sectionTitle">Eating for this plan</div>
@@ -1775,18 +1772,30 @@ function dirPill(direction){
   else if(d.includes('recomp')){ label='Recomp · hold'; cls='maint'; }
   return '<span class="fuelDirPill '+cls+'"><span class="dot"></span>'+esc(label)+'</span>';
 }
+function donutSVG(fracs,colors){
+  const sz=170,r=67,sw=20,cx=sz/2,cy=sz/2,C=2*Math.PI*r;
+  let acc=0,segs='';
+  fracs.forEach((f,i)=>{ if(f<=0) return;
+    segs+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+colors[i]+'" stroke-width="'+sw+'" stroke-dasharray="'+(f*C).toFixed(2)+' '+C.toFixed(2)+'" stroke-dashoffset="'+(-acc*C).toFixed(2)+'" transform="rotate(-90 '+cx+' '+cy+')"/>';
+    acc+=f;
+  });
+  return '<svg viewBox="0 0 '+sz+' '+sz+'" class="donutSvg"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(120,90,200,.10)" stroke-width="'+sw+'"/>'+segs+'</svg>';
+}
 function renderFuel(){
   const n=S.plan.nutrition;
   const grams={ protein:n.protein, carbs:n.carbs, fat:(n.fat||Math.round(getWeightKg()*0.8)) };
-  $('calBig').textContent=n.calories;
-  $('calDir').innerHTML=dirPill(n.direction);
-  // macro split (share of calories)
   const kcal=MACROS.map(m=>grams[m.k]*m.kcalPerG);
   const tot=kcal.reduce((a,b)=>a+b,0)||1;
   const pct=MACROS.map((m,i)=>Math.round(kcal[i]/tot*100));
-  $('macroBar').innerHTML=MACROS.map((m,i)=>'<i style="width:'+(kcal[i]/tot*100).toFixed(1)+'%;background:'+m.color+'"></i>').join('');
-  $('macroLegend').innerHTML=MACROS.map((m,i)=>'<div class="legItem"><span class="legDot" style="background:'+m.color+'"></span><span class="legName">'+m.label+'</span><span class="legPct">'+pct[i]+'%</span></div>').join('');
-  $('macroCards').innerHTML=MACROS.map((m,i)=>'<div class="macroCard"><div class="macroAccent" style="background:'+m.color+'"></div><div class="macroG">'+grams[m.k]+'<small>g</small></div><div class="macroK">'+m.label+'</div><div class="macroP">'+pct[i]+'% of cals</div></div>').join('');
+  const mid=calMid();
+  // donut ring with calories in the centre
+  const donut=$('fuelDonut');
+  donut.querySelector('.donutSvg') && donut.querySelector('.donutSvg').remove();
+  donut.insertAdjacentHTML('afterbegin', donutSVG(MACROS.map((m,i)=>kcal[i]/tot), MACROS.map(m=>m.color)));
+  $('calBig').textContent=mid?mid.toLocaleString():n.calories;
+  $('calRange').textContent=mid?('target '+n.calories+' kcal'):'';
+  $('calDir').innerHTML=dirPill(n.direction);
+  $('macroCards').innerHTML=MACROS.map((m,i)=>'<div class="macroCard '+m.k+'"><div class="macroAccent" style="background:'+m.color+'"></div><div class="macroDot" style="background:'+m.color+'"></div><div class="macroG">'+grams[m.k]+'<small>g</small></div><div class="macroK">'+m.label+'</div><div class="macroP">'+pct[i]+'% · '+kcal[i]+' kcal</div></div>').join('');
   const ul=$('fuelNotes'); ul.innerHTML=''; (n.notes||[]).forEach(x=>ul.appendChild(el('<div class="fuelTip">'+x+'</div>')));
   renderMealDays(); renderMeals();
 }
