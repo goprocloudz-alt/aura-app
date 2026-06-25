@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#F3F2F7">
-<script>/* set theme before paint — no flash */(function(){try{var t=localStorage.getItem('aesthete-theme');if(t!=='light'&&t!=='dark'){t=(window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);var m=document.querySelector('meta[name=theme-color]');if(m&&t==='dark')m.setAttribute('content','#100F16');}catch(e){}})();</script>
+<script>/* set theme + mode before paint — no flash */(function(){try{var t=localStorage.getItem('aesthete-theme');if(t!=='light'&&t!=='dark'){t=(window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);var m=document.querySelector('meta[name=theme-color]');if(m&&t==='dark')m.setAttribute('content','#100F16');var md=localStorage.getItem('aesthete-mode');document.documentElement.setAttribute('data-mode',md==='forge'?'forge':'aura');}catch(e){}})();</script>
 <title>Aesthete — sculpt, lean, glow</title>
 <meta name="description" content="Aesthete — a training and nutrition plan sculpted around your body, your week, and the look you're building toward.">
 <!-- iOS / Android add-to-Home-Screen PWA -->
@@ -717,13 +717,47 @@ html[data-theme="dark"] .wDay.miss .mk::after{ color:#ff9bb0 }
 html[data-theme="dark"] .loader{ background:radial-gradient(120% 90% at 50% 12%, rgba(142,112,255,.28), rgba(16,15,22,.92) 60%, rgba(16,15,22,.97)) }
 html[data-theme="dark"] .authScreen{ background:radial-gradient(120% 80% at 50% 0%, rgba(142,112,255,.22), var(--porcelain) 60%) }
 
+/* ============================================================
+   FORGE MODE (male) — accent palette + brand
+   ============================================================ */
+html[data-mode="forge"]{
+  --violet:#2E6BF5; --violet-press:#2457cc; --violet-wash:#E7EEFF;
+  --a1:#8FB6FF; --a2:#5E9BFF; --a3:#36C7E6; --a4:#2E6BF5; --a5:#22C3A6; --a6:#FF8A4C;
+}
+html[data-mode="forge"][data-theme="dark"]{ --violet:#5E94FF; --violet-press:#3e74e0; --violet-wash:#16233F; }
+/* recolor the hardcoded light-violet gradients to forge blue */
+html[data-mode="forge"] .btn.primary{ background:linear-gradient(180deg,#5E9BFF,var(--violet)); box-shadow:0 14px 30px -12px rgba(46,107,245,.55), inset 0 1px 0 rgba(255,255,255,.4) }
+html[data-mode="forge"] .pill.on{ background:linear-gradient(180deg,#5E9BFF,var(--violet)); box-shadow:0 6px 14px -8px rgba(46,107,245,.6), inset 0 1px 0 rgba(255,255,255,.4) }
+html[data-mode="forge"] .mealDay.on{ background:linear-gradient(180deg,#5E9BFF,var(--violet)); box-shadow:0 6px 14px -8px rgba(46,107,245,.6) }
+html[data-mode="forge"] .goalCheck{ background:linear-gradient(180deg,#5E9BFF,var(--violet)); box-shadow:0 5px 12px -4px rgba(46,107,245,.75), inset 0 1px 0 rgba(255,255,255,.4) }
+html[data-mode="forge"] .mealDay.on,html[data-mode="forge"] .pill.on{ color:#fff }
+
+/* ---- clickable logo + swap hint ---- */
+button.wordmark{ background:none; border:0; cursor:pointer; padding:6px 8px 6px 2px; margin:-6px 0; color:inherit; border-radius:30px; -webkit-tap-highlight-color:transparent }
+button.wordmark:hover .brandSwap{ opacity:.95; transform:rotate(0) }
+button.wordmark:active{ transform:scale(.96) }
+.brandSwap{ width:13px; height:13px; color:var(--ink-faint); opacity:.45; margin-left:3px; transition:opacity .2s, transform .4s ease }
+button.wordmark:hover{ color:var(--violet) }
+
+/* ---- mode-switch transition overlay ---- */
+#modeFx{ position:fixed; inset:0; z-index:500; display:none; align-items:center; justify-content:center; pointer-events:none; will-change:clip-path,opacity }
+#modeFx.on{ display:flex; pointer-events:auto }
+#modeFx.aura{ background:radial-gradient(circle at 50% 42%, #CDBEFA, #7d5bff 58%, #5a3ed4) }
+#modeFx.forge{ background:radial-gradient(circle at 50% 42%, #74A9FF, #2E6BF5 55%, #0e2c66) }
+.fxInner{ text-align:center; color:#fff; padding:24px }
+#modeFx.on .fxInner{ animation:fxIn .65s ease both }
+@keyframes fxIn{ 0%{opacity:0;transform:scale(.86)} 45%{opacity:0} 100%{opacity:1;transform:scale(1)} }
+.fxOrb{ width:118px; height:118px; margin:0 auto 22px; filter:drop-shadow(0 14px 34px rgba(0,0,0,.35)) }
+.fxLabel{ font-family:var(--disp); font-weight:800; font-size:42px; letter-spacing:.14em; text-transform:lowercase; line-height:1 }
+.fxSub{ font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; opacity:.82; margin-top:10px }
+
 </style>
 </head>
 <body>
 <div class="app">
 
   <div class="topbar">
-    <div class="wordmark"><span class="seed"></span>aesthete</div>
+    <button class="wordmark" id="brandBtn" title="Tap to switch mode" aria-label="Switch between Aesthete and Forge"><span class="seed"></span><span id="wordmarkText">aesthete</span><svg class="brandSwap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 014-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 01-4 4H4"/></svg></button>
     <button class="linkbtn" id="connectBtn"><span class="pip"></span><span id="connectLabel">connect</span></button>
   </div>
 
@@ -736,8 +770,8 @@ html[data-theme="dark"] .authScreen{ background:radial-gradient(120% 80% at 50% 
     <section class="hero">
       <div class="orbWrap"><div class="orb" id="heroOrb"></div></div>
       <div class="focusTag" id="focusTag">your focus · <b>balanced</b></div>
-      <h1>Sculpt, lean,<br><span class="grad">glow.</span></h1>
-      <p>A training and nutrition plan shaped around your body, your week, and the look you’re building toward.</p>
+      <h1 id="heroH1">Sculpt, lean,<br><span class="grad">glow.</span></h1>
+      <p id="heroP">A training and nutrition plan shaped around your body, your week, and the look you’re building toward.</p>
     </section>
 
     <section class="section">
@@ -873,6 +907,9 @@ html[data-theme="dark"] .authScreen{ background:radial-gradient(120% 80% at 50% 
 
 <div id="toast"></div>
 
+<!-- mode-switch transition overlay -->
+<div id="modeFx" aria-hidden="true"><div class="fxInner"><div class="orb fxOrb"></div><div class="fxLabel" id="fxLabel"></div><div class="fxSub" id="fxSub"></div></div></div>
+
 <!-- build loader: animated aura orb -->
 <div class="loader" id="buildLoader" aria-hidden="true">
   <div class="loaderInner">
@@ -938,7 +975,7 @@ html[data-theme="dark"] .authScreen{ background:radial-gradient(120% 80% at 50% 
 <div class="authScreen" id="authScreen">
   <div class="authCard">
     <div class="orbWrap"><div class="orb" id="authOrb"></div></div>
-    <div class="authMark">aesthete</div>
+    <div class="authMark" id="authMark">aesthete</div>
     <p class="authSub" id="authSub">Welcome back — sign in to pick up your plan.</p>
     <div id="authConfigNote" class="authNote" style="display:none"></div>
     <div id="authForm">
@@ -1477,7 +1514,7 @@ const S={
   emphasis:[], tightWaist:true, explosive:false, conditioning:'light', bias:'balanced', pace:'moderate',
   injuries:[], avoidText:'', apiKey:'', model:'gemini-2.5-flash',
   plan:null, planSource:'', coach:[], done:{}, dayMap:{}, day:0, tab:'train',
-  history:[], displayName:'', fuelDay:null, theme:'light'
+  history:[], displayName:'', fuelDay:null, theme:'light', mode:'aura'
 };
 
 /* state-backed engine readers (override the DOM-coupled originals) */
@@ -1486,8 +1523,12 @@ function getHeightCm(){ return S.heightCm||0; }
 function toKg(){ return getWeightKg(); }
 function toCm(){ return getHeightCm(); }
 
-function presetCopy(k){ const p=PRESETS[k]; if(p&&p.aura) return p.aura; return {t:p.t,d:p.d,tag:p.tag}; }
-function auraPresets(){ return Object.keys(PRESETS).filter(k=>!PRESETS[k].modes||PRESETS[k].modes.includes('aura')); }
+function presetCopy(k){ const p=PRESETS[k]; if(S.mode!=='forge' && p&&p.aura) return p.aura; return {t:p.t,d:p.d,tag:p.tag}; }
+const MODE_PRESETS={
+  aura:['sculpt','pilates','glutes-legs','pure-aesthetic','recomp-lean','fat-loss','lean-bulk','foundation'],
+  forge:['aesthetic-explosive','pure-aesthetic','powerbuilding','lean-bulk','fat-loss','athletic-power','strength-base','foundation']
+};
+function auraPresets(){ return MODE_PRESETS[S.mode]||MODE_PRESETS.aura; }
 
 const TRAIT_LABEL={'Taper':'Shape','Density':'Tone','Cond.':'Lean','Power':'Strength','Speed':'Energy','Mass':'Curves'};
 const TRAIT_HUE={'Taper':0,'Mass':-16,'Density':18,'Cond.':42,'Power':62,'Speed':84};
@@ -1539,7 +1580,7 @@ function renderGoals(){
     const g=el('<button class="goal '+(k===S.preset?'sel':'')+'"><div class="goalImg"><div class="goalCheck"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div></div><div class="goalTxt"><div class="gt">'+esc(c.t)+'</div><div class="gd">'+esc(c.d)+'</div></div></button>');
     const img=document.createElement('img'); img.loading='lazy'; img.alt=c.t; img.decoding='async';
     img.onload=()=>img.classList.add('on'); img.onerror=()=>img.remove();
-    img.src='focus/'+k+'.jpg';
+    img.src=(S.mode==='forge'?'focus/forge/':'focus/')+k+'.jpg';
     g.querySelector('.goalImg').appendChild(img);
     g.onclick=()=>applyPreset(k);
     box.appendChild(g);
@@ -1583,6 +1624,7 @@ function bindBuild(){
    GEMINI (re-voiced for Aura)
    ============================================================ */
 function systemPrompt(){
+  if(S.mode==='forge') return "You are a sharp, expert strength and physique coach inside a training app for men building an aesthetic, athletic physique — a wide V-taper, capped shoulders, a dense chest and back, defined arms and a lean, muscular midsection, plus real strength and power.\n\nHard rules:\n- Open most sessions with a heavy compound in a strength range (about 3-6 reps), then move into hypertrophy and isolation work for shape.\n- Prioritise shoulders, back width, chest and arms for the V-taper; train legs hard for balance.\n- Progressive overload is the engine — push to add reps or load over time, training near (but rarely to) failure.\n- Honor the training bias (strength = heavier/lower reps; hypertrophy = more volume/isolation; performance = more athletic/power work; balanced = an even blend) and the goal (cut, lean-bulk, recomp, powerbuilding, athletic).\n- Nutrition: give a realistic calorie target and high protein (about 1.8-2.2 g/kg). For lean-bulk use a small surplus; for a cut, a moderate sustainable deficit — never extreme.\n- Be honest that visible definition is driven mostly by body-fat %, sleep and recovery, supported by nutrition — not any single exercise.\n- Respect the user's equipment, days/week, session length and injuries; offer alternatives.\n- This is general fitness information, not medical advice.\n\nMatch the user's exact days/week, equipment, session length and priorities. Keep the tone confident, direct and motivating.";
   return "You are a warm, expert strength and physique coach inside a wellness app for women who want a lean, sculpted, toned look — defined shoulders, a tight waist, sculpted glutes and legs, long lean lines, visible-but-not-bulky muscle. Many users prefer low-impact training.\n\nHard rules:\n- Open most sessions with a strength-range compound (about 4-8 reps) before higher-rep burn/isolation work; strength work builds lean, toned shape.\n- Give relatively higher volume to shoulders (for shape) and glutes/posterior chain; keep it balanced and joint-friendly.\n- If tight-waist is on: NO loaded twists, side bends, or heavy direct oblique work; train core with anti-rotation/anti-extension (planks etc.) only.\n- If low-impact is on (explosive off): NO jumping, plyometrics, sprinting, or Olympic lifts — everything controlled and joint-friendly. If explosive is on, gentle power work may go first in the session.\n- Honor the training bias (strength = heavier/lower reps; hypertrophy = more volume/isolation; performance = more athletic work; balanced = an even blend).\n- Nutrition: give a realistic, SUSTAINABLE calorie range and protein/carb targets. Never prescribe crash diets or very low calories; cap deficits at a sensible, healthy rate. Be encouraging and body-positive, never shaming.\n- Be honest that a lean, defined look is driven mostly by overall body-fat %, sleep and hydration, supported by nutrition — not by any single exercise or food.\n- Respect the user's equipment, days/week, session length and any injuries; offer joint-friendly alternatives.\n- This is general wellness information, not medical or dietary advice.\n\nMatch the user's exact days/week, equipment, session length and priorities. Keep the tone warm, confident and encouraging.";
 }
 function heightDisp(){ if(S.units==='imperial'){ const ft=parseFloat($('heightFt').value)||0, inch=Math.round(parseFloat($('heightIn').value)||0); return ft+"'"+inch+'"'; } return (parseFloat($('height').value)||0)+' cm'; }
@@ -2078,6 +2120,7 @@ async function loadUserState(){
     if(error||!data){ S.history=[]; showBuild(); return; }
     S.displayName=(data.settings&&data.settings.displayName)||'';
     if(data.settings&&data.settings.theme) applyTheme(data.settings.theme);
+    if(data.settings&&data.settings.mode&&data.settings.mode!==S.mode) applyMode(data.settings.mode,{reset:false});
     S.history=Array.isArray(data.history)?data.history:[];
     if(data.profile && Object.keys(data.profile).length) applyProfile(data.profile);
     if(data.plan){ S._restoring=true; S.plan=data.plan; S.done=data.progress||{}; S.planSource=(data.profile&&data.profile.planSource)||'engine'; renderSaved(); S._restoring=false; }
@@ -2260,9 +2303,54 @@ function applyTheme(t){
   setSeg('themeSeg', t);
 }
 function setTheme(t){ applyTheme(t); saveSettings(); }
+
+/* ---------- modes: aura (her) ⇄ forge (him) ---------- */
+const MODE_BRAND={
+  aura:{ name:'aesthete', h1:'Sculpt, lean,<br><span class="grad">glow.</span>', p:'A training and nutrition plan shaped around your body, your week, and the look you’re building toward.', sub:'Welcome back — sign in to pick up your plan.', sex:'female', tag:'lean & sculpted' },
+  forge:{ name:'forge', h1:'Build, lean,<br><span class="grad">forged.</span>', p:'A training and nutrition plan engineered around your body, your week, and the physique you’re building toward.', sub:'Welcome back — sign in to pick up your plan.', sex:'male', tag:'strong & defined' }
+};
+function applyMode(m, opts){
+  opts=opts||{}; m=(m==='forge')?'forge':'aura'; S.mode=m;
+  const b=MODE_BRAND[m];
+  document.documentElement.setAttribute('data-mode',m);
+  const wt=$('wordmarkText'); if(wt) wt.textContent=b.name;
+  const am=$('authMark'); if(am) am.textContent=b.name;
+  const h1=$('heroH1'); if(h1) h1.innerHTML=b.h1;
+  const hp=$('heroP'); if(hp) hp.textContent=b.p;
+  document.title=(m==='forge'?'Forge':'Aesthete')+' — '+(m==='forge'?'build, lean, forged':'sculpt, lean, glow');
+  try{ localStorage.setItem('aesthete-mode', m); }catch(e){}
+  if(opts.reset){
+    S.sex=b.sex; setSeg('sexSeg',b.sex);
+    applyPreset(MODE_DEFAULT_PRESET[m]);   // re-renders goals + silhouette with the new mode's presets
+  } else {
+    renderGoals();
+  }
+  if(opts.persist) saveSettings();
+}
+function switchMode(){
+  if(S._switching) return; S._switching=true;
+  const next = S.mode==='forge'?'aura':'forge';
+  const fx=$('modeFx'); const b=MODE_BRAND[next];
+  const r=$('brandBtn').getBoundingClientRect();
+  const ox=r.left+r.width/2, oy=r.top+r.height/2;
+  const maxR=Math.hypot(Math.max(ox,innerWidth-ox), Math.max(oy,innerHeight-oy))+40;
+  fx.className='forge'===next?'on forge':'on aura';
+  fx.style.opacity='1'; fx.style.clipPath='circle(0px at '+ox+'px '+oy+'px)';
+  $('fxLabel').textContent=b.name;
+  $('fxSub').textContent=next==='forge'?'switching to him':'switching to her';
+  const done=()=>{ fx.className=''; fx.style.opacity=''; fx.style.clipPath=''; S._switching=false; };
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(reduce){ applyMode(next,{reset:true,persist:true}); done(); toast(next==='forge'?'Forge mode ⚒':'Aesthete mode ✦'); return; }
+  // sequenced with setTimeout (robust even if WAAPI callbacks get throttled);
+  // a final safety clear guarantees the overlay never stays stuck.
+  fx.animate([{clipPath:`circle(0px at ${ox}px ${oy}px)`},{clipPath:`circle(${maxR}px at ${ox}px ${oy}px)`}],{duration:520,easing:'cubic-bezier(.65,0,.35,1)',fill:'forwards'});
+  setTimeout(()=>applyMode(next,{reset:true,persist:true}), 540);            // swap under cover
+  setTimeout(()=>{ fx.animate([{opacity:1},{opacity:0}],{duration:440,easing:'ease',fill:'forwards'}); }, 920); // reveal
+  setTimeout(()=>{ done(); toast(next==='forge'?'Forge mode ⚒':'Aesthete mode ✦'); }, 1380);  // guaranteed clear
+}
 function closeSettings(){ $('setScrim').classList.remove('on'); }
 function saveName(){ S.displayName=$('setName').value.trim().slice(0,24); saveSettings(); refreshGreeting(); setPlanHeader(); toast(displayName()?('Hi, '+displayName()+' ✦'):'Name cleared.'); }
-async function saveSettings(){ if(!sb||!session) return; try{ await sb.from('user_plans').upsert({ user_id:session.user.id, settings:{displayName:S.displayName||'', theme:S.theme||'light'}, updated_at:new Date().toISOString() },{onConflict:'user_id'}); }catch(e){} }
+async function saveSettings(){ if(!sb||!session) return; try{ await sb.from('user_plans').upsert({ user_id:session.user.id, settings:{displayName:S.displayName||'', theme:S.theme||'light', mode:S.mode||'aura'}, updated_at:new Date().toISOString() },{onConflict:'user_id'}); }catch(e){} }
 function openReset(){ closeSettings(); $('resetScrim').classList.add('on'); }
 function closeReset(){ $('resetScrim').classList.remove('on'); }
 async function doReset(){
@@ -2436,6 +2524,10 @@ function init(){
   // theme (data-theme already set pre-paint by the head script)
   applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light');
   document.querySelectorAll('#themeSeg button').forEach(b=>b.onclick=()=>setTheme(b.dataset.v));
+  // mode: aura ⇄ forge (logo toggles) — data-mode already set pre-paint
+  const m0=document.documentElement.getAttribute('data-mode')==='forge'?'forge':'aura';
+  applyMode(m0,{reset:m0==='forge'});
+  $('brandBtn').onclick=switchMode;
   // meal detail modal
   $('mealModalClose').onclick=closeMeal;
   $('mealScrim').addEventListener('click',e=>{ if(e.target===$('mealScrim')) closeMeal(); });
